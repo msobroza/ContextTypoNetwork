@@ -15,10 +15,10 @@ public interface LetterInformation {
     public static String VOYELLES_U = "uùûü";
     public static String NON_LETTRES = " \',-.2578_<>#";
     public static String [] PHONEMES_LIA = {"<",">","##","??","aa","ai","an","au","bb","ch","dd","ee","ei","eu","ff","gg","ii","in","jj","kk","ll","mm","nn","oe","on","oo","ou","pp","rr","ss","tt","un","uu","uy","vv","ww","yy","zz"};
-    public static String CARAC_DEBUT = "<";
-    public static String CARAC_FIN = ">";
+    public static String BEGIN_WORD_CHAR = "<";
+    public static String END_WORD_CHAR = ">";
     public static String CARAC_ESP = "#";
-    public static String CARAC_EFFAC = "_";
+    public static String ERASURE_CHAR = "_";
 
     public enum QType {
 

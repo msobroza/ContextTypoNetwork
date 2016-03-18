@@ -61,11 +61,11 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     private final FuzzyNetwork r;
 
     public FuzzyDecoder(FuzzyNetwork r) {
-        MAX_BOOSTING = r.NOMBRE_FANAUX_PAR_CLIQUE * 3;
+        MAX_BOOSTING = r.FANALS_PER_CLIQUE * 3;
         //MAX_BOOSTING = 3;
-        GWsTA_vertical_1 = r.NOMBRE_FANAUX_PAR_CLIQUE;
-        GWsTA_vertical_2 = r.NOMBRE_FANAUX_PAR_CLIQUE * 2;
-        GWsTA_horizontal = r.NOMBRE_FANAUX_PAR_CLIQUE;
+        GWsTA_vertical_1 = r.FANALS_PER_CLIQUE;
+        GWsTA_vertical_2 = r.FANALS_PER_CLIQUE * 2;
+        GWsTA_horizontal = r.FANALS_PER_CLIQUE;
 
         this.r = r;
         seqsPropagBottomUp = new HashMap<>();
@@ -88,58 +88,40 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
 
     public double verifieDecodageBottomUp(String mot, String motRecherche) {
         Clique clique;
-        if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = mot.length();
-            for (int i = 0; i < this.r.NOMBRE_CLUSTERS - taille; i++) {
+            for (int i = 0; i < this.r.NUMBER_CLUSTERS - taille; i++) {
                 mot = mot + "*";
             }
-            for (int i = 0; i < this.r.NOMBRE_CLUSTERS - motRecherche.length(); i++) {
+            for (int i = 0; i < this.r.NUMBER_CLUSTERS - motRecherche.length(); i++) {
                 motRecherche = motRecherche + "*";
             }
         }
-        clique = r.getListeNiveaux().get(0).getCliqueMot(motRecherche);
+        clique = r.getLevelsList().get(0).getWordClique(motRecherche);
         if (clique == null) {
             return -1.0;
         }
         int i;
         int iMax = 0;
-        if (!ContextTypoNetwork.effacement && !ContextTypoNetwork.substitution && ContextTypoNetwork.permutation < 0 && !ContextTypoNetwork.plusieursLettres) {
-            ContextTypoNetwork.logger.info(motRecherche);
-            for (LinkedList<Fanal> lstClique : seqsPropagBottomUp.get(motRecherche)) {
-                i = 0;
-                for (Fanal f : lstClique) {
-                    if (clique.existeFanal(f)) {
-                        i++;
-                    }
-                }
-                if (i > iMax) {
-                    iMax = i;
-                }
-
-            }
-
-        } else {
-            for (LinkedList<Fanal> lstClique : seqsPropagBottomUp.get(mot)) {
-                i = 0;
-                for (Fanal f : lstClique) {
-                    if (clique.existeFanal(f)) {
-                        i++;
-                    }
-                }
-                if (i > iMax) {
-                    iMax = i;
+        for (LinkedList<Fanal> lstClique : seqsPropagBottomUp.get(mot)) {
+            i = 0;
+            for (Fanal f : lstClique) {
+                if (clique.existeFanal(f)) {
+                    i++;
                 }
             }
-
+            if (i > iMax) {
+                iMax = i;
+            }
         }
 
         return ((double) iMax) / motRecherche.length();
     }
 
     public LinkedList<LinkedList<Fanal>> getWinnersBottomUp(String mot) {
-        if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = mot.length();
-            for (int i = 0; i < this.r.NOMBRE_CLUSTERS - taille; i++) {
+            for (int i = 0; i < this.r.NUMBER_CLUSTERS - taille; i++) {
                 mot = mot + "*";
             }
         }
@@ -152,18 +134,18 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         for (Fanal f : lstFanaux) {
             mapCluster.put(((MacroFanal) f).getCluster(), ((MacroFanal) f).getLettre());
         }
-        FuzzyGraph g = (FuzzyGraph) r.getListeNiveaux().get(0).getGraphe();
-        for (int i = 0; i < r.NOMBRE_CLUSTERS; i++) {
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
+        for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
             mot += mapCluster.get(g.getCluster(i));
         }
         return mot;
     }
 
     // ------------- Decodage Bottom-up-------------------
-    public void reconnaitreBottomUp(String mot, int taille_fenetre, boolean utilisationPhoneme, int souplesse) {
+    public void recognizePatternBottomUpDecoding(String mot, int taille_fenetre, boolean utilisationPhoneme, int souplesse) {
         String lettre;
         List<String> phonListe = null;
-        FuzzyGraph g = (FuzzyGraph) r.getListeNiveaux().get(0).getGraphe();
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
         LinkedList<MacroFanal> activesReseauDroite = new LinkedList<>();
         // INITIALISATION
         // Initialisation des scores des fanaux
@@ -177,7 +159,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         int nombreFanauxAvant, nombreFanauxApres;
         int nEffac = 0;
         ContextTypoNetwork.logger.debug("Première activation");
-        System.out.println("Info: "+mot);
+        System.out.println("Info: " + mot);
         // PREMIERE ACTIVATION
         if (FuzzyNetwork.FLOU2FLOU) {
             boolean conditionInsertion = false;
@@ -186,7 +168,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
             // Recherche la position d'une lettre possiblement effacée
             for (int i = 0; i < mot.length(); i++) {
                 lettre = mot.substring(i, i + 1);
-                if (lettre.equals(CARAC_EFFAC)) {
+                if (lettre.equals(ERASURE_CHAR)) {
                     nEffac++;
                 }
             }
@@ -199,23 +181,23 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                 for (MacroFanal mf : activesReseauDroite) {
                     System.out.println(mf + " -> " + mf.getLettre());
                 }
-                if (phonListe.size() > r.NOMBRE_CLUSTERS) {
+                if (phonListe.size() > r.NUMBER_CLUSTERS) {
                     conditionInsertion = true;
                     int offsetPos;
                     ArrayList<Integer> posDeletions = new ArrayList<>();
                     ArrayList<Integer> posClusters = new ArrayList<>();
                     ArrayList<String> lettresDeletes = new ArrayList<>();
                     ArrayList<String> motAvecDeletions;
-                    offsetPos = NetworkControl.posAleatoirePhon(phonListe) + 1;
+                    offsetPos = NetworkControl.getRandomPositionWord(phonListe) + 1;
                     int pos;
-                    for (int j = 0; j < phonListe.size() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < phonListe.size() - r.NUMBER_CLUSTERS; j++) {
                         pos = ((offsetPos + 2 * j) % (mot.length() - 2)) + 1;
                         posDeletions.add(pos);
                     }
                     Collections.sort(posDeletions);
                     offsetPos = 0;
                     motAvecDeletions = new ArrayList<>(phonListe);
-                    for (int j = 0; j < phonListe.size() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < phonListe.size() - r.NUMBER_CLUSTERS; j++) {
                         lettresDeletes.add(motAvecDeletions.get(posDeletions.get(j) - offsetPos));
                         motAvecDeletions.remove(posDeletions.get(j) - offsetPos);
                         posClusters.add(posDeletions.get(j) - offsetPos - 1);
@@ -224,7 +206,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     // Sélection de l'ensemble des fanaux activants (deletes)
                     ContextTypoNetwork.logger.debug("Activation macrofanaux - fanaux déletés");
                     int iC;
-                    for (int j = 0; j < phonListe.size() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < phonListe.size() - r.NUMBER_CLUSTERS; j++) {
                         lettre = lettresDeletes.get(j);
                         iC = posClusters.get(j);
                         int iFenetre = 0;
@@ -276,23 +258,23 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     }
                 }
             } else {
-                if (mot.length() > r.NOMBRE_CLUSTERS) {
+                if (mot.length() > r.NUMBER_CLUSTERS) {
                     conditionInsertion = true;
                     int offsetPos;
                     ArrayList<Integer> posDeletions = new ArrayList<>();
                     ArrayList<Integer> posClusters = new ArrayList<>();
                     ArrayList<String> lettresDeletes = new ArrayList<>();
                     String motAvecDeletions;
-                    offsetPos = NetworkControl.posAleatoireMot(mot.substring(1, mot.length() - 1)) + 1;
+                    offsetPos = NetworkControl.getRandomPositionWord(mot.substring(1, mot.length() - 1)) + 1;
                     int pos;
-                    for (int j = 0; j < mot.length() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < mot.length() - r.NUMBER_CLUSTERS; j++) {
                         pos = ((offsetPos + 2 * j) % (mot.length() - 2)) + 1;
                         posDeletions.add(pos);
                     }
                     Collections.sort(posDeletions);
                     offsetPos = 0;
                     motAvecDeletions = mot;
-                    for (int j = 0; j < mot.length() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < mot.length() - r.NUMBER_CLUSTERS; j++) {
                         lettresDeletes.add(motAvecDeletions.substring(posDeletions.get(j) - offsetPos, posDeletions.get(j) - offsetPos + 1));
                         motAvecDeletions = motAvecDeletions.substring(0, posDeletions.get(j) - offsetPos) + motAvecDeletions.substring(posDeletions.get(j) - offsetPos + 1, motAvecDeletions.length());
                         posClusters.add(posDeletions.get(j) - offsetPos - 1);
@@ -301,7 +283,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     // Sélection de l'ensemble des fanaux activants (deletes)
                     ContextTypoNetwork.logger.debug("Activation macrofanaux - fanaux déletés");
                     int iC;
-                    for (int j = 0; j < mot.length() - r.NOMBRE_CLUSTERS; j++) {
+                    for (int j = 0; j < mot.length() - r.NUMBER_CLUSTERS; j++) {
                         lettre = lettresDeletes.get(j);
                         iC = posClusters.get(j);
                         int iFenetre = 0;
@@ -325,7 +307,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
 
                 // Sélection de l'ensemble des fanaux activants
                 ContextTypoNetwork.logger.debug("Activation macrofanaux");
-                
+
                 for (int i = 0; i < mot.length(); i++) {
                     lettre = mot.substring(i, i + 1);
                     // Cherche le fanal correspondant a la lettre en utilisant la fenetre circulaire
@@ -390,7 +372,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                 for (MacroFanal mFanal : g.getCluster(i).getMacroFanaux()) {
                     lstFanaux.addAll(mFanal.getListFanaux());
                 }
-                lstFanaux = this.thresholdingFilter(lstFanaux, r.NOMBRE_FANAUX_PAR_CLIQUE - nEffac - souplesse, false);
+                lstFanaux = this.thresholdingFilter(lstFanaux, r.FANALS_PER_CLIQUE - nEffac - souplesse, false);
 
             } else {
                 lstFanaux = this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false);
@@ -412,7 +394,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                             activerConnectionsChaineTournois(f, g);
                         }
 
-                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.NOMBRE_FANAUX_PAR_CLIQUE - nEffac - souplesse, false);
+                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac - souplesse, false);
 
                         bestScoresBottomUp.set(0, lstWinners);
                         nombreFanauxAvant = nombreFanauxApres;
@@ -428,8 +410,8 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                 // Si effacement, on supprime les fanaux issus du cluster associé à la lettre effacée de la liste des fanaux à booster 
                 if (nEffac != 0) {
                     for (Fanal f : lstWinners) {
-                        for (int i = 0; i < r.NOMBRE_CLUSTERS; i++) {
-                            if (g.getCluster(i).getMacroFanaux().contains(((FanalFlous) f).getMacroFanal()) && ((FanalFlous) f).getMacroFanal().getLettre().equals(CARAC_EFFAC)) {
+                        for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
+                            if (g.getCluster(i).getMacroFanaux().contains(((FanalFlous) f).getMacroFanal()) && ((FanalFlous) f).getMacroFanal().getLettre().equals(ERASURE_CHAR)) {
                                 lstBoosting.remove(f);
                             }
                         }
@@ -470,7 +452,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                             activerConnectionsChaineTournois(f, g);
                         }
 
-                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.NOMBRE_FANAUX_PAR_CLIQUE - nEffac, false);
+                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac, false);
 
                         bestScoresBottomUp.set(0, lstWinners);
                         nombreFanauxAvant = nombreFanauxApres;
@@ -486,7 +468,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                             activerConnectionsChaineTournois(f, g);
                         }//System.out.println("Cluster: "+i+" Fanaux: "+lstFanaux.size());
 
-                        for (int i = 0; i < r.NOMBRE_CLUSTERS; i++) {
+                        for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
                             lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false));
                         }
                         bestScoresBottomUp.set(0, lstWinners);
@@ -503,12 +485,12 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                         nValides++;
                     }
                 }
-                if (!valClusterGlobal && taille_fenetre < r.NOMBRE_CLUSTERS) {
-                    reconnaitreBottomUp(motOrig, taille_fenetre + 1, utilisationPhoneme, souplesse);
+                if (!valClusterGlobal && taille_fenetre < r.NUMBER_CLUSTERS) {
+                    recognizePatternBottomUpDecoding(motOrig, taille_fenetre + 1, utilisationPhoneme, souplesse);
                     return;
                 } else {
                     if (!valClusterGlobal && souplesse < FuzzyDecoder.SOUPLESSE_FILTRAGE) {
-                        reconnaitreBottomUp(motOrig, 0 , utilisationPhoneme, souplesse + 1);
+                        recognizePatternBottomUpDecoding(motOrig, 0, utilisationPhoneme, souplesse + 1);
                         return;
                     } else {
                         LinkedList<LinkedList<Fanal>> lstResult = null;
@@ -517,7 +499,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                             this.seqsPropagBottomUpFlous.put(motOrig, globalWinners);
                             for (int i = 0; i < globalWinners.size(); i++) {
                                 lstWinners = globalWinners.get(i);
-                            // Il garde les fanaux flous gagnants
+                                // Il garde les fanaux flous gagnants
                                 // Récupération des macrofanaux gagnants à la fin du décodage
                                 lst = new HashSet<>();
                                 mapCluster.clear();
@@ -532,7 +514,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                                 }
                                 lstResult.add(lstWinners);
                                 ContextTypoNetwork.logger.debug("Mot trouvee: ");
-                                for (int j = 0; j < r.NOMBRE_CLUSTERS; j++) {
+                                for (int j = 0; j < r.NUMBER_CLUSTERS; j++) {
                                     ContextTypoNetwork.logger.debug(mapCluster.get(g.getCluster(j)));
                                 }
                                 ContextTypoNetwork.logger.debug("Nombre de macrofanaux : " + lstWinners.size());
@@ -558,7 +540,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                         activerConnectionsChaineTournois(f, g);
                     }
 
-                    for (int i = 0; i < r.NOMBRE_CLUSTERS; i++) {
+                    for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
                         lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false));
                     }
                     bestScoresBottomUp.set(0, lstWinners);
@@ -575,19 +557,19 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     }
 
     public LinkedList<LinkedList<Fanal>> getWinnersSeqBottomUp(String mot) {
-        if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = mot.length();
-            for (int i = 0; i < this.r.NOMBRE_CLUSTERS - taille; i++) {
+            for (int i = 0; i < this.r.NUMBER_CLUSTERS - taille; i++) {
                 mot = mot + "*";
             }
         }
         return seqsPropagBottomUp.get(mot);
     }
 
-    public LinkedList<LinkedList<Fanal>> getWinnersSeqBottomUpFlous(String mot) {
-        if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
+    public LinkedList<LinkedList<Fanal>> getWinnersPatternsFuzzyDecoding(String mot) {
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = mot.length();
-            for (int i = 0; i < this.r.NOMBRE_CLUSTERS - taille; i++) {
+            for (int i = 0; i < this.r.NUMBER_CLUSTERS - taille; i++) {
                 mot = mot + "*";
             }
         }
@@ -606,14 +588,14 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
 
             }
         }
-        return lstCluster.size() == r.NOMBRE_CLUSTERS && lst_macro.size() == r.NOMBRE_FANAUX_PAR_CLIQUE;
+        return lstCluster.size() == r.NUMBER_CLUSTERS && lst_macro.size() == r.FANALS_PER_CLIQUE;
 
     }
 
     public void activerConnexionsFanal(Fanal f, int h) {
         Fanal l;
         Edge a;
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
+        FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
         Edge[] listeArc = n.getGraphe().getListeArc(f);
         for (int i = 0; i < listeArc.length; i++) {
             if (listeArc[i] != null) {
@@ -636,7 +618,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     public void activerConnexionsFanal(Fanal f, int h, int score) {
         Fanal l;
         Edge a;
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
+        FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
         Edge[] listeArc = n.getGraphe().getListeArc(f);
         for (int i = 0; i < listeArc.length; i++) {
             if (listeArc[i] != null) {
@@ -652,25 +634,6 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     a.setActive(true);
                 }
                 l.setScore(l.getScore() + score);
-            }
-        }
-    }
-
-    private void activerConnectionsChaineTournois(Fanal f_sous, int h) {
-        Fanal l;
-        Fanal f_niv;
-        Edge a;
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
-        Edge[] listeArc = n.getSousGraphe().getListeArc(f_sous);
-        for (int i = 0; i < listeArc.length; i++) {
-            a = null;
-            if (listeArc[i] != null) {
-                if (listeArc[i].getOrig().equals(f_sous)) {
-                    l = listeArc[i].getDest();
-                    listeArc[i].setActive(true);
-                    f_niv = n.getGraphe().getNumerotation().elementAt(n.getSousGraphe().getNumerotation().numero(l));
-                    f_niv.setScore(f_niv.getScore() + 1);
-                }
             }
         }
     }
@@ -785,19 +748,10 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     public void activerFanauxHyperSup(Fanal l, int h) {
         //Si il y a des connexions superieures, il les active 
         // Ensuite, il active les connexions des fanaux superieures
-        if (!l.getFanauxHyperSup().isEmpty()) {
-            for (Fanal t : l.getFanauxHyperSup()) {
+        if (!l.getSuperiorHyperFanals().isEmpty()) {
+            for (Fanal t : l.getSuperiorHyperFanals()) {
                 t.setScore(t.getScore() + 1);
             }
-        }
-    }
-
-    private void activerChaineTournois(LinkedList<Fanal> lst, int h) {
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
-        Fanal f_sous;
-        for (Fanal f : lst) {
-            f_sous = n.getSousGraphe().getNumerotation().elementAt(n.getGraphe().getNumerotation().numero(f));
-            activerConnectionsChaineTournois(f_sous, h);
         }
     }
 
@@ -805,7 +759,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         FuzzyLevel n;
         if (h == -1) {
             for (int i = 0; i < FuzzyNetwork.hMax; i++) {
-                n = (FuzzyLevel) r.getListeNiveaux().get(i);
+                n = (FuzzyLevel) r.getLevelsList().get(i);
                 for (Fanal f : n.getGraphe().sommets()) {
                     f.setScore(0);
                 }
@@ -815,7 +769,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
             }
             return;
         } else {
-            n = (FuzzyLevel) r.getListeNiveaux().get(h);
+            n = (FuzzyLevel) r.getLevelsList().get(h);
             for (Fanal f : n.getGraphe().sommets()) {
                 f.setScore(0);
                 // Habiliter ligne quand utiliser le SOM
@@ -844,8 +798,8 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
 
     public LinkedList<Fanal> loserKickOut(LinkedList<Fanal> lst_orig, int h) {
         LinkedList<Fanal> lst = new LinkedList<>();
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
-        int minScore = r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS;
+        FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
+        int minScore = r.FANALS_PER_CLUSTER * r.NUMBER_CLUSTERS;
         int maxScore = -1;
         for (Fanal f : lst_orig) {
             if (f.getScore() < minScore) {
@@ -866,29 +820,14 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         return lst;
     }
 
-    public boolean sameScore(LinkedList<Fanal> lst_orig) {
-        int firstScore = 0;
-        boolean first = true;
-        for (Fanal f : lst_orig) {
-            if (first) {
-                firstScore = f.getScore();
-                first = false;
-            } else {
-                if (f.getScore() != firstScore) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
     // Il prend les premiers numElements
     public LinkedList<Fanal> globalWinnersTakeAll(int h, int numElements) {
 
         LinkedList<Fanal> lstWinner = new LinkedList<>();
-        FuzzyLevel n = (FuzzyLevel) r.getListeNiveaux().get(h);
+        FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
         LinkedList<Fanal>[] vectorScores;
-        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS];
+        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.FANALS_PER_CLUSTER * r.NUMBER_CLUSTERS];
         for (int i = 0; i < vectorScores.length; i++) {
             vectorScores[i] = new LinkedList<>();
         }
@@ -926,23 +865,23 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     }
 
     public HashSet<MacroFanal> filtragePropagationLaterale() {
-        FuzzyGraph g = (FuzzyGraph) r.getListeNiveaux().get(0).getGraphe();
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
         HashSet<MacroFanal> result = new HashSet<>();
         LinkedList<MacroFanal> winnersCluster = new LinkedList<>();
         int scoreMax, scoreFanal;
-        for (int iClust = 0; iClust < r.NOMBRE_CLUSTERS; iClust++) {
+        for (int iClust = 0; iClust < r.NUMBER_CLUSTERS; iClust++) {
             scoreMax = 0;
             for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanaux()) {
-                if (InterfaceNetwork.fanauxActifsLateral.containsKey(mfCluster)) {
-                    scoreFanal = InterfaceNetwork.fanauxActifsLateral.get(mfCluster);
+                if (InterfaceNetwork.fanalScoreMap.containsKey(mfCluster)) {
+                    scoreFanal = InterfaceNetwork.fanalScoreMap.get(mfCluster);
                     if (scoreFanal > scoreMax) {
                         scoreMax = scoreFanal;
                     }
                 }
             }
             for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanaux()) {
-                if (InterfaceNetwork.fanauxActifsLateral.containsKey(mfCluster)) {
-                    scoreFanal = InterfaceNetwork.fanauxActifsLateral.get(mfCluster);
+                if (InterfaceNetwork.fanalScoreMap.containsKey(mfCluster)) {
+                    scoreFanal = InterfaceNetwork.fanalScoreMap.get(mfCluster);
                     if (scoreFanal == scoreMax) {
                         winnersCluster.add(mfCluster);
                     }
@@ -1025,27 +964,6 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         }
 
         return listeWinners;
-    }
-
-    public boolean modifierParametre(boolean contenu, String nomParametre) {
-
-        try {
-            Class cls = Class.forName("controle.Decodage");
-            Field fld = cls.getField(nomParametre);
-            fld.set(this, contenu);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        } catch (IllegalAccessException e) {
-            return false;
-        } catch (IllegalArgumentException e) {
-            return false;
-        } catch (NoSuchFieldException e) {
-            return false;
-        } catch (SecurityException e) {
-            return false;
-        }
-
     }
 
 }

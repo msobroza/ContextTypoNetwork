@@ -17,13 +17,13 @@ public class TriangularNetwork extends Network {
     // Nombre de clusters dans le réseau (X)
     public int NOMBRE_CLUSTERS = 300;
     // Nombre de fanaux par clique (il faut qu'il soit pair) (c)
-    public int NOMBRE_FANAUX_PAR_CLIQUE = 8;
+    public int FANALS_PER_CLIQUE = 8;
     // Nombre de fanaux par clique (lettres) -> Le nombre de clusters doit être plus grand que 50
     public int NOMBRE_FANAUX_PAR_CLIQUE_H0 = 20;
     // Nombre de fanaux par cluster (Il faut utiliser un nombre pair) (l)
     public int NOMBRE_FANAUX_PAR_CLUSTER = 300;
     // Active la creation d'un niveau supplementaires (unites composes)
-    public boolean NIVEAU_SUPPLEMENTAIRE = true;
+    public boolean ADDITIONAL_LEVEL = true;
     // Nombre de clusters du niveau suplementaire
     public int NOMBRE_CLUSTERS_SUP = 500;
     // Nombre de fanaux par cluster du niveau suplementaire
@@ -61,8 +61,6 @@ public class TriangularNetwork extends Network {
     public boolean DECODAGE_HYPER_LIAISON = true;
     // Active Hyper liaison des bigrammes (liaison entre le deuxieme niveau et le dernier)
     public boolean DECODAGE_HYPER_LIAISON_BIGRAMMES = true;
-    // Active Hyper liaison des bigrammes (liaison entre le troisieme niveau et le dernier)
-    public boolean DECODAGE_HYPER_LIAISON_TRIGRAMMES = false;
     // Il active l'apprentissage des caractères délimiteurs
     public boolean CARAC_DELIM = true;
     // Il active le modèle de la méiose
@@ -81,30 +79,27 @@ public class TriangularNetwork extends Network {
     public final boolean TESTE_INSERTIONS_LEFT = false;
     // C'est un parametre pour identifier si c'est un reseau interface
     public final boolean INTERFACE;
-    // Il active une couche cachee de bigrammes ouverts
-    public final boolean COUCHE_CACHE_BIGRAMMES_OUVERTS;
 
     // Niveau Standart -> Il n'y a pas des arcs
     protected TriangularLevel niveauStandart;
     // Niveau Supplementaire
-    protected TriangularLevel niveauSup;
+    protected TriangularLevel superiorLevel;
     // private NiveauTriang repetitionLettres;
     protected final TriangularDecoder decodeur;
 
-    public TriangularNetwork(int l, int X, int c, int hMax, boolean NIVEAU_SUPPLEMENTAIRE, boolean COUCHE_CACHE_BIGRAMMES_OUVERTS,  boolean INTERFACE) {
+    public TriangularNetwork(int l, int X, int c, int hMax, boolean NIVEAU_SUPPLEMENTAIRE, boolean INTERFACE) {
         this.TYPE_RESEAU= NetworkControl.RESEAU_TRIANG;
         this.NOMBRE_FANAUX_PAR_CLUSTER = l;
         this.NOMBRE_CLUSTERS = X;
-        this.NOMBRE_FANAUX_PAR_CLIQUE = c;
+        this.FANALS_PER_CLIQUE = c;
         this.hMax = hMax;
-        this.NIVEAU_SUPPLEMENTAIRE = NIVEAU_SUPPLEMENTAIRE;
+        this.ADDITIONAL_LEVEL = NIVEAU_SUPPLEMENTAIRE;
         this.INTERFACE = INTERFACE;
-        this.COUCHE_CACHE_BIGRAMMES_OUVERTS = COUCHE_CACHE_BIGRAMMES_OUVERTS;
-        listeNiveaux = new LinkedList<>();
+        levelsList = new LinkedList<>();
         hCounter = -1;
         // Creation d'un niveau standart qui va etre replie pour tous les autres
         creerNiveauStandard();
-        if (this.NIVEAU_SUPPLEMENTAIRE) {
+        if (this.ADDITIONAL_LEVEL) {
             // Creation des hMax niveaux
             for (int i = 0; i < hMax - 1; i++) {
                 creerNiveauCopie();
@@ -122,23 +117,23 @@ public class TriangularNetwork extends Network {
 
     private void creerNiveauSupplementaire() {
         Fanal s;
-        this.niveauSup = new TriangularLevel(hCounter, this, NOMBRE_FANAUX_PAR_CLUSTER_SUP, NOMBRE_CLUSTERS_SUP);
+        this.superiorLevel = new TriangularLevel(hCounter, this, NOMBRE_FANAUX_PAR_CLUSTER_SUP, NOMBRE_CLUSTERS_SUP);
         int cluster;
         hCounter++;
         //hCounter==hMax-1
         for (int iClust = 0; iClust < NOMBRE_CLUSTERS_SUP; iClust++) {
             //Ajouter cluster
-            cluster = niveauSup.getGraphe().getNumerotation().ajouterCluster();
+            cluster = superiorLevel.getGraphe().getNumerotation().ajouterCluster();
             for (int iFanal = 0; iFanal < NOMBRE_FANAUX_PAR_CLUSTER_SUP; iFanal++) {
                 // Creer un nouveau sommet
                 s = new Fanal("c:" + iClust + ",f:" + iFanal, 0);
                 //Ajouter le sommet dans le graphe
-                this.niveauSup.getGraphe().ajouterSommet(s);
+                this.superiorLevel.getGraphe().ajouterSommet(s);
                 // Ajouter le sommet dans le cluster
-                this.niveauSup.getGraphe().getNumerotation().ajouterSommetCluster(cluster, s);
+                this.superiorLevel.getGraphe().getNumerotation().ajouterSommetCluster(cluster, s);
             }
         }
-        listeNiveaux.add(hCounter, this.niveauSup);
+        levelsList.add(hCounter, this.superiorLevel);
     }
 
     private void creerNiveauStandard() {
@@ -164,30 +159,30 @@ public class TriangularNetwork extends Network {
         if (hCounter == hMax) {
             return null;
         }
-        listeNiveaux.add(hCounter, (TriangularLevel) niveauStandart.copie(hCounter));
-        return listeNiveaux.get(hCounter);
+        levelsList.add(hCounter, (TriangularLevel) niveauStandart.copie(hCounter));
+        return levelsList.get(hCounter);
     }
 
-    public Level getNiveauSup() {
-        return this.niveauSup;
+    public Level getSuperiorLevel() {
+        return this.superiorLevel;
     }
     
     @Override
-    public Clique apprendreMot(String mot) {
-        List<String> unite = new ArrayList<>();
+    public Clique learnWord(String mot) {
+        List<String> unit = new ArrayList<>();
         Level n;
         // Il ajoute chaque lettre dans l'unite
         for (int c = 0; c < mot.length(); c++) {
-            unite.add(mot.substring(c, c + 1));
+            unit.add(mot.substring(c, c + 1));
         }
-        if (apprendreSousPartie(unite, unite.size(), true, true)) {
-            if (!this.NIVEAU_SUPPLEMENTAIRE) {
-                n = (TriangularLevel) listeNiveaux.get(unite.size() - 1);
+        if (learnSubword(unit, unit.size(), true, true)) {
+            if (!this.ADDITIONAL_LEVEL) {
+                n = (TriangularLevel) levelsList.get(unit.size() - 1);
             } else {
-                n = this.niveauSup;
+                n = this.superiorLevel;
             }
-            if (n.existeClique(mot)) {
-                return n.getCliqueMot(mot);
+            if (n.existsClique(mot)) {
+                return n.getWordClique(mot);
             } else {
                 return null;
             }
@@ -198,18 +193,18 @@ public class TriangularNetwork extends Network {
 
     // Cette methode est differente de celle de mots car les unites de phonemes ont longueur inconnu
     @Override
-    public Clique apprendrePhoneme(String phon) {
+    public Clique learnPhoneme(String phon) {
         TriangularLevel n;
-
-        List<String> listePhon = PhonemeRules.separePhonemes(phon, ContextTypoNetwork.APPRENTISSAGE_PHONS_LIA);
-        if (apprendreSousPartie(listePhon, listePhon.size(), true, true)) {
-            if (!this.NIVEAU_SUPPLEMENTAIRE) {
-                n = (TriangularLevel) listeNiveaux.get(listePhon.size() - 1);
+        System.out.println("Este eh o phonema: "+phon);
+        List<String> listePhon = PhonemeRules.separePhonemes(phon);
+        if (learnSubword(listePhon, listePhon.size(), true, true)) {
+            if (!this.ADDITIONAL_LEVEL) {
+                n = (TriangularLevel) levelsList.get(listePhon.size() - 1);
             } else {
-                n = this.niveauSup;
+                n = this.superiorLevel;
             }
-            if (n.existeClique(phon)) {
-                return n.getCliqueMot(phon);
+            if (n.existsClique(phon)) {
+                return n.getWordClique(phon);
             } else {
                 return null;
             }
@@ -218,16 +213,16 @@ public class TriangularNetwork extends Network {
         }
     }
 
-    protected boolean apprendreSousPartie(List<String> unite, int maxLength, boolean begin, boolean end) {
+    protected boolean learnSubword(List<String> unite, int maxLength, boolean begin, boolean end) {
         List<String> seqLeft = new ArrayList<>();
         List<String> seqRight = new ArrayList<>();
         if (unite.size() == 1) {
-            return apprendreSeq(unite, seqLeft, seqRight, maxLength, begin, end);
+            return learnSequence(unite, seqLeft, seqRight, maxLength, begin, end);
         } else {
             seqLeft = unite.subList(0, unite.size() - 1);
             seqRight = unite.subList(1, unite.size());
-            if (apprendreSousPartie(seqLeft, maxLength, begin, false) && apprendreSousPartie(seqRight, maxLength, false, end)) {
-                return apprendreSeq(unite, seqLeft, seqRight, maxLength, begin, end);
+            if (learnSubword(seqLeft, maxLength, begin, false) && learnSubword(seqRight, maxLength, false, end)) {
+                return learnSequence(unite, seqLeft, seqRight, maxLength, begin, end);
             } else {
                 return false;
             }
@@ -235,7 +230,7 @@ public class TriangularNetwork extends Network {
 
     }
 
-    private boolean apprendreSeq(List<String> listeSeq, List<String> listeSeqLeft, List<String> listeSeqRight, int maxLength, boolean begin, boolean end) {
+    private boolean learnSequence(List<String> listeSeq, List<String> listeSeqLeft, List<String> listeSeqRight, int maxLength, boolean begin, boolean end) {
         // 1- Choisir les fanaux
         // 2- Representer la clique dans le bon niveau
         // 3- Sous-echantilonner la clique et representer la clique supérieure
@@ -254,13 +249,13 @@ public class TriangularNetwork extends Network {
         ContextTypoNetwork.logger.debug(seq + "= " + seqLeft + " | " + seqRight);
         TriangularLevel n;
         // Si le niveau supplementaire est active il le prendre pour realiser les connexions
-        if (!this.NIVEAU_SUPPLEMENTAIRE || listeSeq.size() != maxLength) {
-            n = (TriangularLevel) listeNiveaux.get(listeSeq.size() - 1);
+        if (!this.ADDITIONAL_LEVEL || listeSeq.size() != maxLength) {
+            n = (TriangularLevel) levelsList.get(listeSeq.size() - 1);
         } else {
-            n = this.niveauSup;
+            n = this.superiorLevel;
         }
 
-        if (n.existeClique(seq) || (this.NIVEAU_SUPPLEMENTAIRE && this.SOUS_PARTIE_RESEAU && listeSeq.size() > this.HYPER_LIAISON_NOMBRE_NIVEAUX && listeSeq.size() != maxLength && (this.DECODAGE_HYPER_LIAISON || this.DECODAGE_HYPER_LIAISON_BIGRAMMES || this.DECODAGE_HYPER_LIAISON_TRIGRAMMES))) {
+        if (n.existsClique(seq) || (this.ADDITIONAL_LEVEL && this.SOUS_PARTIE_RESEAU && listeSeq.size() > this.HYPER_LIAISON_NOMBRE_NIVEAUX && listeSeq.size() != maxLength && (this.DECODAGE_HYPER_LIAISON || this.DECODAGE_HYPER_LIAISON_BIGRAMMES ))) {
             // C'est interresant de renforcer la clique
             // Soit on change le taux d'echant ou le nombre des noueds dans la clique
             // Soit on utilise la même clique ou on utilise une autre
@@ -270,14 +265,14 @@ public class TriangularNetwork extends Network {
             // Le premiere niveau a nombre_fanaux_par_clique_h0 fanaux
             if (seq.length() == 1 && this.SOUS_ECHANT_H0) {
                 if (this.CARAC_DELIM && (seq.equals("<") || (seq.equals(">")))) {
-                    n.ajouterClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.NOMBRE_FANAUX_PAR_CLIQUE_H0 * 2);
+                    n.addClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.NOMBRE_FANAUX_PAR_CLIQUE_H0 * 2);
                 } else {
-                    n.ajouterClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.NOMBRE_FANAUX_PAR_CLIQUE_H0);
+                    n.addClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.NOMBRE_FANAUX_PAR_CLIQUE_H0);
                 }
 
             } else {
-                n.ajouterClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.NOMBRE_FANAUX_PAR_CLIQUE);
-                if (listeSeq.size() == maxLength && (this.DECODAGE_HYPER_LIAISON || this.DECODAGE_HYPER_LIAISON_BIGRAMMES || this.DECODAGE_HYPER_LIAISON_TRIGRAMMES)) {
+                n.addClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.FANALS_PER_CLIQUE);
+                if (listeSeq.size() == maxLength && (this.DECODAGE_HYPER_LIAISON || this.DECODAGE_HYPER_LIAISON_BIGRAMMES )) {
                     // Ajouter hyper liaison au premier niveau
                     // On considere qu'on a déjà les cliques gardés dans la memoire
                     n.ajouterHyperLiaison(listeSeq);
@@ -293,14 +288,14 @@ public class TriangularNetwork extends Network {
         decodeur.remiseMemo();
 
         if (this.DECODAGE_HYPER_LIAISON_BIGRAMMES) {
-            decodeur.reconnaitreBottomUpHyperDeuxNiveaux(PhonemeRules.phonemesCorrectesToList(PhonemeRules.separePhonemes("<" + phoneme + ">", ContextTypoNetwork.APPRENTISSAGE_PHONS_LIA)), phonemeRecherche);
+            decodeur.reconnaitreBottomUpHyperDeuxNiveaux(PhonemeRules.phonemesCorrectesToList(PhonemeRules.separePhonemes("<" + phoneme + ">")), phonemeRecherche);
         } else {
-            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.separePhonemes("<" + phoneme + ">", ContextTypoNetwork.APPRENTISSAGE_PHONS_LIA), TriangularDecoder.LEFT, true, true);
+            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.separePhonemes("<" + phoneme + ">"), TriangularDecoder.LEFT, true, true);
         }
-        if (this.NIVEAU_SUPPLEMENTAIRE) {
+        if (this.ADDITIONAL_LEVEL) {
             result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", this.hMax - 1);
         } else {
-            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", PhonemeRules.separePhonemes("<" + phoneme + ">", ContextTypoNetwork.APPRENTISSAGE_PHONS_LIA).size() - 1);
+            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", PhonemeRules.separePhonemes("<" + phoneme + ">").size() - 1);
         }
         return result;
     }
@@ -314,7 +309,7 @@ public class TriangularNetwork extends Network {
         } else {
             // decodeur.reconnaitreBottomUp(ReglesPhonemes.separePhonemes("<" + phoneme + ">"), DecodageTriang.LEFT, true, true);
         }
-        if (this.NIVEAU_SUPPLEMENTAIRE) {
+        if (this.ADDITIONAL_LEVEL) {
 
             result = decodeur.verifieDecodageBottomUp(phonemeRecherche, this.hMax - 1);
         } else {
@@ -325,54 +320,23 @@ public class TriangularNetwork extends Network {
         return result;
     }
 
-    public double reconnaitreMot(String mot, String motRecherche) {
-        Double result;
-        decodeur.remiseMemo();
-
-        if (!this.TOP_DOWN) {
-            if (this.DECODAGE_HYPER_LIAISON_BIGRAMMES || this.DECODAGE_HYPER_LIAISON_TRIGRAMMES) {
-                if (this.DECODAGE_HYPER_LIAISON_TRIGRAMMES) {
-                    decodeur.reconnaitreBottomUpHyperTroisNiveaux(mot);
-                } else {
-                    decodeur.reconnaitreBottomUpHyperDeuxNiveaux(mot);
-                }
-
-            } else {
-                if (this.DECODAGE_HYPER_LIAISON) {
-                    decodeur.reconnaitreBottomUpHyperLettres(mot);
-                } else {
-                    decodeur.reconnaitreBottomUpMot(mot, TriangularDecoder.LEFT, true, true);
-                }
-            }
-        } else {
-            decodeur.reconnaitreTopDown(this.getListeNiveaux().get(mot.length() - 1).getCliqueMot(mot).getListe(), mot.length());
-        }
-
-        if (this.TOP_DOWN) {
-            result = decodeur.verifieDecodageTopDown(motRecherche);
-        } else {
-            result = decodeur.verifieDecodageBottomUp(motRecherche, motRecherche.length() - 1);
-        }
-        return result;
-    }
-
     public LinkedList<Fanal> getFanauxUnite(String unite) {
         return decodeur.getWinnersSeqBottomUp(unite);
     }
 
-    public Decoder getDecodeur() {
+    public Decoder getDecoder() {
         return this.decodeur;
     }
 
-    public double getTauxMatchingInterfaceReseaux(LinkedList<Fanal> fanauxGagnants, String motAppris) {
+    public double getMatchingRateInterfaceNetwork(LinkedList<Fanal> fanauxGagnants, String motAppris) {
         int nombreFanauxTrouves = 0;
-        LinkedList<Fanal> fanauxCorrects = this.getListeNiveaux().get(0).getCliqueMot(motAppris).getListe();
+        LinkedList<Fanal> fanauxCorrects = this.getLevelsList().get(0).getWordClique(motAppris).getFanalsList();
         for (Fanal f : fanauxCorrects) {
             if (fanauxGagnants.contains(f)) {
                 nombreFanauxTrouves++;
             }
         }
-        return ((double) nombreFanauxTrouves) / this.NOMBRE_FANAUX_PAR_CLIQUE;
+        return ((double) nombreFanauxTrouves) / this.FANALS_PER_CLIQUE;
     }
 
 }

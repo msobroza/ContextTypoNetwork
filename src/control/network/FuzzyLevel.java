@@ -29,7 +29,7 @@ public class FuzzyLevel extends Level implements LetterInformation {
     private final HashMap<String, Clique> mapCliqueFlousStr;
 
     public FuzzyLevel(int h, FuzzyNetwork r) {
-        int n = r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS; //Nombre de sommets
+        int n = r.FANALS_PER_CLUSTER * r.NUMBER_CLUSTERS; //Nombre de sommets
         this.graphe = new FuzzyGraph(n);
         this.sousGraphe = new FuzzyGraph(n);
         this.mapCliquesStr = new HashMap<>();
@@ -88,7 +88,7 @@ public class FuzzyLevel extends Level implements LetterInformation {
                 System.out.println("Phoneme a apprendre: "+info+" Longueur: "+info.length());
                 for (int i = 0; i < info.length(); i++) {
 
-                    if (info.substring(i,i+1).equals(CARAC_DEBUT) || info.substring(i,i+1).equals(CARAC_FIN)) {
+                    if (info.substring(i,i+1).equals(BEGIN_WORD_CHAR) || info.substring(i,i+1).equals(END_WORD_CHAR)) {
                         String lettre = info.substring(i, i + 1);
                         // Note : si on utilise des macrofanaux, la méthode getFanal de la classe Cluster renvoit un macrofanal
                         listFanaux.add(((FuzzyGraph) this.graphe).getCluster(iCluster).getMacroFanal(lettre));
@@ -195,7 +195,7 @@ public class FuzzyLevel extends Level implements LetterInformation {
 
     }
 
-    public Clique getCliqueMotFlous(String mot) {
+    public Clique getCliqueWordFuzzy(String mot) {
         if (!this.mapCliqueFlousStr.containsKey(mot)) {
             return null;
         }

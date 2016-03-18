@@ -17,13 +17,13 @@ import model.MacroFanal;
 public class FuzzyNetwork extends Network {
 
     // Nombre de clusters dans le reseau
-    public int NOMBRE_CLUSTERS;
+    public int NUMBER_CLUSTERS;
     // Nombre de fanaux par clique (il faut qu'il soit pair si sous-�chantillonage)
-    public int NOMBRE_FANAUX_PAR_CLIQUE;
+    public int FANALS_PER_CLIQUE;
     // Nombre de fanaux par clique (lettres)
     //public static int NOMBRE_FANAUX_PAR_CLIQUE_H0 = ReseauFlous.NOMBRE_CLUSTERS;
     // Nombre de fanaux par cluster (Il faut utiliser un nombre pair)
-    public int NOMBRE_FANAUX_PAR_CLUSTER;
+    public int FANALS_PER_CLUSTER;
     // Nombre maximal de niveaux
     public static int hMax = 1;
     // Active le seuilage
@@ -57,19 +57,19 @@ public class FuzzyNetwork extends Network {
 
     // Constructeur d'un réseau standard
     public FuzzyNetwork(int X, int type_infons) {
-        System.out.println("Nombre de clusters: "+X);
-        this.TYPE_RESEAU = NetworkControl.RESEAU_FLOUS;
-        this.NOMBRE_CLUSTERS = X;
-        this.NOMBRE_FANAUX_PAR_CLIQUE = X;
-        this.RECOUVR_CIRCULAIRE = this.NOMBRE_CLUSTERS - 1;
+        System.out.println("Nombre de clusters: " + X);
+        this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
+        this.NUMBER_CLUSTERS = X;
+        this.FANALS_PER_CLIQUE = X;
+        this.RECOUVR_CIRCULAIRE = this.NUMBER_CLUSTERS - 1;
         FuzzyNetwork.hMax = 1;
         this.TYPE_INFONS = type_infons;
-        if (TYPE_INFONS == InterfaceNetwork.TYPE_INFONS_MOTS) {
-            this.NOMBRE_FANAUX_PAR_CLUSTER = SYMBOLES.length();
+        if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
+            this.FANALS_PER_CLUSTER = SYMBOLES.length();
         } else {
-            this.NOMBRE_FANAUX_PAR_CLUSTER = PHONEMES_LIA.length;
+            this.FANALS_PER_CLUSTER = PHONEMES_LIA.length;
         }
-        listeNiveaux = new LinkedList<>();
+        levelsList = new LinkedList<>();
         hCounter = -1;
         // Creation d'un niveau standard
 
@@ -84,18 +84,18 @@ public class FuzzyNetwork extends Network {
 
     // Constructeur d'un réseau initialisé (sans connexions), de même architecture que le réseau rPrev    
     public FuzzyNetwork(FuzzyNetwork rPrev) {
-        this.TYPE_RESEAU = NetworkControl.RESEAU_FLOUS;
-        this.NOMBRE_CLUSTERS = rPrev.NOMBRE_CLUSTERS;
-        this.NOMBRE_FANAUX_PAR_CLIQUE = rPrev.NOMBRE_FANAUX_PAR_CLIQUE;
-        this.RECOUVR_CIRCULAIRE = NOMBRE_CLUSTERS - 1;
+        this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
+        this.NUMBER_CLUSTERS = rPrev.NUMBER_CLUSTERS;
+        this.FANALS_PER_CLIQUE = rPrev.FANALS_PER_CLIQUE;
+        this.RECOUVR_CIRCULAIRE = NUMBER_CLUSTERS - 1;
         this.TYPE_INFONS = rPrev.TYPE_INFONS;
-        if (TYPE_INFONS == InterfaceNetwork.TYPE_INFONS_MOTS) {
-            this.NOMBRE_FANAUX_PAR_CLUSTER = SYMBOLES.length();
+        if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
+            this.FANALS_PER_CLUSTER = SYMBOLES.length();
         } else {
-            this.NOMBRE_FANAUX_PAR_CLUSTER = PHONEMES_LIA.length;
+            this.FANALS_PER_CLUSTER = PHONEMES_LIA.length;
         }
         FuzzyNetwork.hMax = 1;
-        listeNiveaux = new LinkedList<>();
+        levelsList = new LinkedList<>();
 
         hCounter = -1;
 
@@ -108,7 +108,7 @@ public class FuzzyNetwork extends Network {
         // Creation des hMax niveaux
         for (int i = 0; i < hMax; i++) {
             hCounter++;
-            listeNiveaux.add(hCounter, (FuzzyLevel) rPrev.getListeNiveaux().get(hCounter).copie(hCounter));
+            levelsList.add(hCounter, (FuzzyLevel) rPrev.getLevelsList().get(hCounter).copie(hCounter));
         }
         decodeur = new FuzzyDecoder(this);
 
@@ -121,7 +121,7 @@ public class FuzzyNetwork extends Network {
         String lettre;
         this.niveauStandard = new FuzzyLevel(hCounter, this);
 
-        for (int iClust = 0; iClust < NOMBRE_CLUSTERS; iClust++) {
+        for (int iClust = 0; iClust < NUMBER_CLUSTERS; iClust++) {
             //Ajouter cluster
             c = new Cluster("c:" + iClust);
             ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterCluster(c);
@@ -134,11 +134,11 @@ public class FuzzyNetwork extends Network {
                     nbFanauxParMF = LetterInformation.NB_CAS;
                 }
 
-                for (int iMFanal = 0; iMFanal < NOMBRE_FANAUX_PAR_CLUSTER; iMFanal++) {
+                for (int iMFanal = 0; iMFanal < FANALS_PER_CLUSTER; iMFanal++) {
                     // On crée un nouveau macrofanal pour la lettre courante
                     mf = new MacroFanal("c:" + iClust + ",mf:" + iMFanal, 0);
                     ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterMacroFanal(mf);
-                    if (this.TYPE_INFONS == InterfaceNetwork.TYPE_INFONS_PHONEMES) {
+                    if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
                         lettre = PHONEMES_LIA[iMFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
@@ -166,10 +166,10 @@ public class FuzzyNetwork extends Network {
                     }
                 }
             } else {
-                for (int iFanal = 0; iFanal < NOMBRE_FANAUX_PAR_CLUSTER; iFanal++) {
+                for (int iFanal = 0; iFanal < FANALS_PER_CLUSTER; iFanal++) {
                     // Creer un nouveau sommet
                     f = new FanalFlous("c:" + iClust + ",mf:" + iFanal, 0);
-                    if (this.TYPE_INFONS == InterfaceNetwork.TYPE_INFONS_PHONEMES) {
+                    if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
                         lettre = PHONEMES_LIA[iFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
@@ -194,8 +194,8 @@ public class FuzzyNetwork extends Network {
         if (hCounter >= hMax) {
             return null;
         }
-        listeNiveaux.add(hCounter, ((FuzzyLevel) niveauStandard).copie(hCounter));
-        return listeNiveaux.get(hCounter);
+        levelsList.add(hCounter, ((FuzzyLevel) niveauStandard).copie(hCounter));
+        return levelsList.get(hCounter);
     }
 
     /* @Override
@@ -294,50 +294,44 @@ public class FuzzyNetwork extends Network {
      * @return booleen
      */
     @Override
-    public Clique apprendreMot(String mot) {
-        FuzzyLevel n = (FuzzyLevel) this.getListeNiveaux().get(0);
-        if(ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE){
-            int taille=mot.length();
-            for(int i=0; i<this.NOMBRE_CLUSTERS-taille;i++){
-                mot=mot+"*";
+    public Clique learnWord(String mot) {
+        FuzzyLevel n = (FuzzyLevel) this.getLevelsList().get(0);
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+            int taille = mot.length();
+            for (int i = 0; i < this.NUMBER_CLUSTERS - taille; i++) {
+                mot = mot + "*";
             }
         }
-        if (n.existeClique(mot)) {
+        if (n.existsClique(mot)) {
             // Si la clique pour ce mot existe deja, il est interessant de la renforcer
             // (à voir + tard)
             // Pour l'instant, cela signifie que l'on a rien à faire
-            return n.getCliqueMot(mot);
+            return n.getWordClique(mot);
         } else {
             n.ajouterAnticipCirculaire(mot, false);
         }
-        return n.getCliqueMot(mot);
+        return n.getWordClique(mot);
     }
 
     @Override
-    public Clique apprendrePhoneme(String phon) {
-        FuzzyLevel n = (FuzzyLevel) this.getListeNiveaux().get(0);
-         if(ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_GAUCHE){
-            int taille=NetworkControl.getLongueurPhon(phon);
-            for(int i=0; i<this.NOMBRE_CLUSTERS-taille;i++){
-                phon=phon+"##";
-            }
-        }
-        if (n.existeClique(phon)) {
+    public Clique learnPhoneme(String phon) {
+        FuzzyLevel n = (FuzzyLevel) this.getLevelsList().get(0);
+        if (n.existsClique(phon)) {
             // Si la clique pour ce mot existe deja, il est interessant de la renforcer
             // (à voir + tard)
             // Pour l'instant, cela signifie que l'on a rien à faire
-            return n.getCliqueMot(phon);
+            return n.getWordClique(phon);
         } else {
             n.ajouterAnticipCirculaire(phon, true);
         }
-        return n.getCliqueMot(phon);
+        return n.getWordClique(phon);
     }
 
-    public int realiserMitose() {
+    public int mitosis() {
         // Pour tout les macrofanaux, si le dernier des fanaux créé est saturé, on crée un nouveau fanal
         MacroFanal mf;
         FanalFlous f;
-        FuzzyGraph G = (FuzzyGraph) this.getListeNiveaux().get(0).getGraphe();
+        FuzzyGraph G = (FuzzyGraph) this.getLevelsList().get(0).getGraphe();
         int nbMitose = 0;
         for (int k = 0; k < G.getNbMacroFanaux(); k++) {
             // récupération du macrofanal courant
@@ -367,7 +361,7 @@ public class FuzzyNetwork extends Network {
     @Override
     public String toString() {
         String result = "";
-        for (Level n : listeNiveaux) {
+        for (Level n : levelsList) {
             result += n.toString() + "\n";
 
         }
@@ -376,42 +370,42 @@ public class FuzzyNetwork extends Network {
 
     public int getNbArcs() {
         int result = 0;
-        for (int i = 0; i < this.getListeNiveaux().size(); i++) {
-            result += ((FuzzyGraph) this.getListeNiveaux().get(i).getGraphe()).getNbArcs();
+        for (int i = 0; i < this.getLevelsList().size(); i++) {
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbArcs();
         }
         return result;
     }
 
     public int getNbFanaux() {
         int result = 0;
-        for (int i = 0; i < this.getListeNiveaux().size(); i++) {
-            result += ((FuzzyGraph) this.getListeNiveaux().get(i).getGraphe()).getNbFanaux();
+        for (int i = 0; i < this.getLevelsList().size(); i++) {
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbFanaux();
         }
         return result;
     }
 
     public int getNbMacroFanaux() {
         int result = 0;
-        for (int i = 0; i < this.getListeNiveaux().size(); i++) {
-            result += ((FuzzyGraph) this.getListeNiveaux().get(i).getGraphe()).getNbMacroFanaux();
+        for (int i = 0; i < this.getLevelsList().size(); i++) {
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbMacroFanaux();
         }
         return result;
     }
 
     public LinkedList<Integer> getDistriFanauxDegSortant() {
-        return ((FuzzyGraph) this.getListeNiveaux().get(0).getGraphe()).getDistriFanauxDegSortant();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDistriFanauxDegSortant();
     }
 
     public LinkedList<Integer> getDistriFanauxDegEntrant() {
-        return ((FuzzyGraph) this.getListeNiveaux().get(0).getGraphe()).getDistriFanauxDegEntrant();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDistriFanauxDegEntrant();
     }
 
     public ArrayList<FanalFlous> getFanauxGrandDegE(int seuilDegMitose) {
-        return ((FuzzyGraph) this.getListeNiveaux().get(0).getGraphe()).getFanauxGrandDegE(seuilDegMitose);
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getFanauxGrandDegE(seuilDegMitose);
     }
 
     public double getDensite() {
-        return ((FuzzyGraph) this.getListeNiveaux().get(0).getGraphe()).getDensite();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDensite();
     }
 
 }

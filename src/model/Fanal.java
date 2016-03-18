@@ -64,11 +64,11 @@ public class Fanal {
         return this.fanauxInf;
     }
 
-    public LinkedList<Fanal> getFanauxHyperSup() {
+    public LinkedList<Fanal> getSuperiorHyperFanals() {
         return this.fanauxHyperSup;
     }
 
-    public LinkedList<Fanal> getFanauxHyperInf() {
+    public LinkedList<Fanal> getInferiorHyperFanals() {
         return this.fanauxHyperInf;
     }
 

@@ -7,25 +7,25 @@ import model.Clique;
 public abstract class Network implements LetterInformation {
     
     protected int hCounter;
-    protected LinkedList<Level> listeNiveaux;
+    protected LinkedList<Level> levelsList;
     protected int TYPE_RESEAU;
     
     
     @Override
     public String toString() {
         String result = "";
-        for (Level n : listeNiveaux) {
+        for (Level n : levelsList) {
             result += n.toString() + "\n";
 
         }
         return result;
     }
-    public abstract Clique apprendreMot(String mot);
+    public abstract Clique learnWord(String mot);
     
-    public abstract Clique apprendrePhoneme(String phon);
+    public abstract Clique learnPhoneme(String phon);
 
-    public LinkedList<Level> getListeNiveaux() {
-        return listeNiveaux;
+    public LinkedList<Level> getLevelsList() {
+        return levelsList;
     }
     
     public int getTypeReseau(){

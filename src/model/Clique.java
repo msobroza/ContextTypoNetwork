@@ -12,7 +12,7 @@ public class Clique {
         this.info = info;
     }
 
-    public LinkedList<Fanal> getListe() {
+    public LinkedList<Fanal> getFanalsList() {
         return listeFanaux;
     }
 

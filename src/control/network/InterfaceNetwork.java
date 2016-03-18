@@ -18,8 +18,8 @@ import model.MacroFanal;
 public class InterfaceNetwork extends TriangularNetwork implements LetterInformation {
 
     // Ils définissent le type d'information à être appris pour chaque reseau
-    public static final int TYPE_INFONS_MOTS = 0;
-    public static final int TYPE_INFONS_PHONEMES = 1;
+    public static final int INFORMATION_CONTENT_WORDS = 0;
+    public static final int INFORMATION_CONTENT_PHONEMES = 1;
 
     // Ils définissent le type de liaison entre les cliques frontieres des reseaux
     public static int TYPE_LIAISON_UNIDIRECTIONNELLE = 0;
@@ -27,385 +27,271 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
     // Ils définissent la direction d'activation
     public static int ACTIVATION_VERS_DROITE = 0;
-    public static int ACTIVATION_VERS_GAUCHE = 1;
+    public static int ACTIVATION_TO_LEFT_SIDE = 1;
 
     // Ces attributs representent les reseaux de l'interface reseaux
-    private final ArrayList<Network> listeReseaux;
-    private final ArrayList<Integer> listeTypeReseaux;
-    private final NetworkControl controleReseaux;
-    private ArrayList<HashSet<Fanal>> listeFanauxDecodes;
+    private final ArrayList<Network> multimodalNetworks;
+    private final ArrayList<Integer> typeNetworks;
+    private final NetworkControl networkControl;
+    private ArrayList<HashSet<Fanal>> decodedFanals;
 
-    public static HashMap<Fanal, Integer> fanauxActifsLateral;
+    public static HashMap<Fanal, Integer> fanalScoreMap;
 
     public InterfaceNetwork() {
-        super(0, 0, 0, 0, false, false, false);
-        this.listeReseaux = null;
-        this.listeTypeReseaux = null;
-        this.controleReseaux = null;
+        super(0, 0, 0, 0, false, false);
+        this.multimodalNetworks = null;
+        this.typeNetworks = null;
+        this.networkControl = null;
     }
 
     public InterfaceNetwork(NetworkControl controleReseaux) {
         // On instancie un reseau du type triangulaire
-        super(200, 100, 8, 1, false, false, true);
-        this.listeReseaux = new ArrayList<>();
-        this.listeTypeReseaux = new ArrayList<>();
-        this.controleReseaux = controleReseaux;
-        this.listeFanauxDecodes = new ArrayList<>();
+        super(200, 100, 8, 1, false, true);
+        this.multimodalNetworks = new ArrayList<>();
+        this.typeNetworks = new ArrayList<>();
+        this.networkControl = controleReseaux;
+        this.decodedFanals = new ArrayList<>();
         // Ce sont les valeurs de score de chaque macro fanal
-        fanauxActifsLateral = new HashMap<>();
-        if (ContextTypoNetwork.METRIQUES_PAR_RESEAU) {
-            if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES) {
-                this.listeFanauxDecodes.add(NetworkControl.INDICE_RESEAU_FLOUS_GAUCHE, new HashSet<Fanal>());
-            } else {
-                this.listeFanauxDecodes.add(NetworkControl.INDICE_RESEAU_TRIANG, new HashSet<Fanal>());
-            }
-            this.listeFanauxDecodes.add(NetworkControl.INDICE_RESEAU_FLOUS_DROITE, new HashSet<Fanal>());
+        fanalScoreMap = new HashMap<>();
+        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+
+            this.decodedFanals.add(NetworkControl.TRIANGULAR_NETWORK_INDEX, new HashSet<>());
+
+            this.decodedFanals.add(NetworkControl.FUZZY_NETWORK_INDEX, new HashSet<>());
         }
 
     }
 
     // On ajoute un reseau d'indice "indiceReseau" et avec un type
-    public void ajouterReseau(Network r, int indiceReseau, int typeReseau) {
-        this.listeReseaux.add(indiceReseau, r);
-        this.listeTypeReseaux.add(indiceReseau, typeReseau);
+    public void addNetwork(Network r, int indiceReseau, int typeReseau) {
+        this.multimodalNetworks.add(indiceReseau, r);
+        this.typeNetworks.add(indiceReseau, typeReseau);
     }
 
     @Override
-    public Clique apprendreMot(String mot) {
+    public Clique learnWord(String word) {
 
-        Clique cliqueInterface, cliqueInf, cliqueGauche, cliqueDroite;
-        cliqueGauche = null;
-        cliqueDroite = null;
+        Clique cliqueInterface, cliqueInf, cliqueLeft, cliqueRight;
+        cliqueLeft = null;
+        cliqueRight = null;
         TriangularLevel n;
         // Il obtient le niveau h=0
-        n = (TriangularLevel) this.listeNiveaux.get(0);
-        if (n.existeClique("<" + mot + ">")) {
+        n = (TriangularLevel) this.levelsList.get(0);
+        if (n.existsClique("<" + word + ">")) {
             return null;
         } else {
-            ContextTypoNetwork.logger.debug("Réseau d'interface - <" + mot + "> -");
+            ContextTypoNetwork.logger.debug("Réseau d'interface - <" + word + "> -");
             // Il ajoute la clique du mot dans le niveau h=0 du reseau interface
-            cliqueInterface = n.ajouterClique("<" + mot + ">", 1, "", 0, "", 0, this.NOMBRE_FANAUX_PAR_CLIQUE);
-            for (int i = 0; i < listeReseaux.size(); i++) {
+            cliqueInterface = n.addClique("<" + word + ">", 1, "", 0, "", 0, this.FANALS_PER_CLIQUE);
+            for (int i = 0; i < multimodalNetworks.size(); i++) {
                 // Il selectionne le type d'information à garder
-                if (listeTypeReseaux.get(i) == TYPE_INFONS_MOTS && listeReseaux.get(i).getTypeReseau() == NetworkControl.RESEAU_FLOUS) {
-                    String motVar = "<" + mot + ">";
-                    if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
-                        int taille = motVar.length();
-                        for (int j = 0; j < ((FuzzyNetwork) listeReseaux.get(i)).NOMBRE_CLUSTERS - taille; j++) {
-                            motVar = motVar + "*";
+                if (typeNetworks.get(i) == INFORMATION_CONTENT_WORDS && multimodalNetworks.get(i).getTypeReseau() == NetworkControl.FUZZY_NETWORK) {
+                    String variableWord = "<" + word + ">";
+                    if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+                        int size = variableWord.length();
+                        for (int j = 0; j < ((FuzzyNetwork) multimodalNetworks.get(i)).NUMBER_CLUSTERS - size; j++) {
+                            variableWord = variableWord + "*";
                         }
                     }
-                    cliqueInf = ((FuzzyLevel) ((FuzzyNetwork) listeReseaux.get(i)).listeNiveaux.get(0)).getCliqueMotFlous(motVar);
-                    ContextTypoNetwork.logger.debug("Clique mot: " + mot + " : " + cliqueInf.getInfo());
+                    cliqueInf = ((FuzzyLevel) ((FuzzyNetwork) multimodalNetworks.get(i)).levelsList.get(0)).getCliqueWordFuzzy(variableWord);
+                    ContextTypoNetwork.logger.debug("Clique mot: " + word + " : " + cliqueInf.getInfo());
                 } else {
-                    if (ContextTypoNetwork.APPRENTISSAGE_PHONS_LIA) {
-                        if (listeReseaux.get(i).getTypeReseau() == NetworkControl.RESEAU_FLOUS) {
-                            String phon = "<" + controleReseaux.getPhonLia(mot) + ">";
-                            if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_GAUCHE) {
-
-                                int taille = NetworkControl.getLongueurPhon(phon);
-                                System.out.println("Tamanho antes insercao: " + taille + ", clique: " + phon);
-                                for (int j = 0; j < ((FuzzyNetwork) listeReseaux.get(i)).NOMBRE_CLUSTERS - taille; j++) {
-                                    phon = phon + "##";
-                                }
-                            }
-                            System.out.println("Clique procurado: " + phon);
-                            cliqueInf = ((FuzzyLevel) ((FuzzyNetwork) listeReseaux.get(i)).listeNiveaux.get(0)).getCliqueMotFlous(phon);
-                            if (cliqueInf == null) {
-                                System.out.println("clique nulo");
-                            }
-                        } else {
-                            cliqueInf = ((TriangularNetwork) listeReseaux.get(i)).getNiveauSup().getCliqueMot("<" + controleReseaux.getPhonLia(mot) + ">");
-                        }
-
-                        ContextTypoNetwork.logger.debug("Clique phoneme: " + controleReseaux.getPhonLia(mot) + " : " + cliqueInf.getInfo());
-                    } else {
-                        if (listeReseaux.get(i).getTypeReseau() == NetworkControl.RESEAU_FLOUS) {
-                            cliqueInf = ((FuzzyLevel) ((FuzzyNetwork) listeReseaux.get(i)).listeNiveaux.get(0)).getCliqueMotFlous("<" + controleReseaux.getPhonLexique(mot) + ">");
-                        } else {
-                            cliqueInf = ((TriangularNetwork) listeReseaux.get(i)).getNiveauSup().getCliqueMot("<" + controleReseaux.getPhonLexique(mot) + ">");
-                        }
-
-                        ContextTypoNetwork.logger.debug("Clique phoneme: " + controleReseaux.getPhonLexique(mot) + " : " + cliqueInf.getInfo());
-                    }
+                    cliqueInf = ((TriangularNetwork) multimodalNetworks.get(i)).getSuperiorLevel().getWordClique("<" + networkControl.getPhoneme(word) + ">");
+                    ContextTypoNetwork.logger.debug("Clique phoneme: " + networkControl.getPhoneme(word) + " : " + cliqueInf.getInfo());
                 }
 
                 // Il cree la liaison entre les deux niveaux
-                for (Fanal fInf : cliqueInf.getListe()) {
-                    for (Fanal fSup : cliqueInterface.getListe()) {
+                for (Fanal fInf : cliqueInf.getFanalsList()) {
+                    for (Fanal fSup : cliqueInterface.getFanalsList()) {
                         //TypoMultireseaux.logger.debug(fInf + " -> " + fSup);
-                        n.creerLiaisonInterNiveaux(fInf, fSup);
+                        n.createLinkBetweenLevels(fInf, fSup);
                     }
                 }
-                if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES || NetworkControl.ACTIVE_CONNECTIONS_LATERALES_TRIANG) {
+                if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
                     // Il selectionne les fanaux de la clique à gauche et de la clique à droite
                     if (i == 0) {
-                        cliqueGauche = cliqueInf;
+                        cliqueLeft = cliqueInf;
                     } else {
-                        cliqueDroite = cliqueInf;
+                        cliqueRight = cliqueInf;
                     }
                 }
-
             }
-            if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES || NetworkControl.ACTIVE_CONNECTIONS_LATERALES_TRIANG) {
-                for (Fanal fGauche : cliqueGauche.getListe()) {
-                    for (Fanal fDroite : cliqueDroite.getListe()) {
+            if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
+                for (Fanal fLeft : cliqueLeft.getFanalsList()) {
+                    for (Fanal fRight : cliqueRight.getFanalsList()) {
                         // Il crée les liaisons laterales
-                        ((TriangularLevel) this.getListeNiveaux().get(0)).creerLiaisonInterHyperNiveaux(fGauche, fDroite);
+                        ((TriangularLevel) this.getLevelsList().get(0)).createLinkBetweenHyperLevels(fLeft, fRight);
                     }
                 }
             }
             return cliqueInterface;
         }
-
     }
 
-    public LinkedList<Fanal> decoderInterfaceReseaux(String motMod, LinkedList<List<String>> phonLexique) {
-        HashSet<Fanal> lstFanauxTriangUnion = new HashSet<>();
-        HashSet<Fanal> lstFanauxFlousUnion = new HashSet<>();
-        LinkedList<Fanal> lstFanauxFlous = new LinkedList<>();
-        LinkedList<Fanal> lstFanauxTriang = new LinkedList<>();
-        LinkedList<Fanal> lstFanauxInf = new LinkedList<>();
-        TriangularNetwork rTriang;
-        FuzzyNetwork rFlousDroite, rFlousGauche;
-        TriangularDecoder dTriang;
-        FuzzyDecoder dFlousDroite;
-        FuzzyDecoder dFlousGauche;
-        String motFloue, phonMod, phonFlous;
+    public LinkedList<Fanal> decoderInterfaceReseaux(String modifiedWord, LinkedList<List<String>> phonemes) {
+        HashSet<Fanal> triangularFanalsSet = new HashSet<>();
+        HashSet<Fanal> fuzzyFanalsSet = new HashSet<>();
+        LinkedList<Fanal> fuzzyFanalsList = new LinkedList<>();
+        LinkedList<Fanal> triangularFanalsList = new LinkedList<>();
+        LinkedList<Fanal> inferiorFanalsList = new LinkedList<>();
+        TriangularNetwork triangularNetwork;
+        FuzzyNetwork fuzzyRightNetwork;
+        TriangularDecoder triangularDecoder;
+        FuzzyDecoder fuzzyDecoder;
+        String fuzzyWord;
         // ---- Flous de mots -------
-        rFlousDroite = (FuzzyNetwork) listeReseaux.get(NetworkControl.INDICE_RESEAU_FLOUS_DROITE);
+        fuzzyRightNetwork = (FuzzyNetwork) multimodalNetworks.get(NetworkControl.FUZZY_NETWORK_INDEX);
         // Il prend le decodeur du Reseau Flous
-        dFlousDroite = (FuzzyDecoder) (rFlousDroite).getDecodeur();
+        fuzzyDecoder = (FuzzyDecoder) (fuzzyRightNetwork).getDecodeur();
         // Ajoute postambule dans le mot (information de non information)
-        if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
-            int taille = motMod.length();
-            for (int i = 0; i < rFlousDroite.NOMBRE_CLUSTERS - taille; i++) {
-                motMod = motMod + "*";
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+            int taille = modifiedWord.length();
+            for (int i = 0; i < fuzzyRightNetwork.NUMBER_CLUSTERS - taille; i++) {
+                modifiedWord = modifiedWord + "*";
             }
         }
-        // TO DO - Creer juste pour tester la dynamique de deletion des caracteres
-        if (motMod.length() < rFlousDroite.NOMBRE_CLUSTERS) {
+        if (modifiedWord.length() < fuzzyRightNetwork.NUMBER_CLUSTERS) {
 
-            motFloue = "<" + NetworkControl.insertionLettre(motMod.substring(1, motMod.length() - 1), CARAC_EFFAC, rFlousDroite.NOMBRE_CLUSTERS - motMod.length()) + ">";
+            fuzzyWord = "<" + NetworkControl.insertLetter(modifiedWord.substring(1, modifiedWord.length() - 1), ERASURE_CHAR, fuzzyRightNetwork.NUMBER_CLUSTERS - modifiedWord.length()) + ">";
             // Il réalise la propagation et decodage (0 est la fênetre initialle)
-            dFlousDroite.reconnaitreBottomUp(motFloue, 0, false, 0);
+            fuzzyDecoder.recognizePatternBottomUpDecoding(fuzzyWord, 0, false, 0);
             // Il obtient les fanaux gagnants du decodage flous
-            for (LinkedList<Fanal> lst : dFlousDroite.getWinnersSeqBottomUpFlous(motFloue)) {
-                lstFanauxFlous.addAll(lst);
+            for (LinkedList<Fanal> lst : fuzzyDecoder.getWinnersPatternsFuzzyDecoding(fuzzyWord)) {
+                fuzzyFanalsList.addAll(lst);
             }
         } else {
             // Il réalise la propagation et decodage
-            dFlousDroite.reconnaitreBottomUp(motMod, 0, false, 0);
+            fuzzyDecoder.recognizePatternBottomUpDecoding(modifiedWord, 0, false, 0);
             // Il obtient les fanaux gagnants du decodage flous
-            for (LinkedList<Fanal> lst : dFlousDroite.getWinnersSeqBottomUpFlous(motMod)) {
-                lstFanauxFlous.addAll(lst);
+            for (LinkedList<Fanal> lst : fuzzyDecoder.getWinnersPatternsFuzzyDecoding(modifiedWord)) {
+                fuzzyFanalsList.addAll(lst);
             }
         }
-        lstFanauxFlousUnion.addAll(lstFanauxFlous);
-        // Si on actice l'option active reseau flous phonemes
-        if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES) {
-            phonMod = "";
-            for (List<String> sousPhon : phonLexique) {
-                for (String partie : sousPhon) {
-                    phonMod += partie;
-                }
-            }
+        fuzzyFanalsSet.addAll(fuzzyFanalsList);
 
-            //activerConnectionsLaterales(lstFanauxFlous, ACTIVATION_VERS_GAUCHE);
-            // ---- Flous de phonemes -------
-            // Il prendre le ReseauFlous de phonemes
-            rFlousGauche = (FuzzyNetwork) listeReseaux.get(NetworkControl.INDICE_RESEAU_FLOUS_GAUCHE);
-            // Il prend le decodeur du Reseau Flous
-            dFlousGauche = (FuzzyDecoder) (rFlousGauche).getDecodeur();
-
-            if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_GAUCHE) {
-                int taille = NetworkControl.getLongueurPhon(phonMod);
-                for (int i = 0; i < rFlousGauche.NOMBRE_CLUSTERS - taille; i++) {
-                    phonMod = phonMod + "##";
-                }
-            }
-            System.out.println("comodo: " + phonMod);
-            if (NetworkControl.getLongueurPhon(phonMod) < rFlousGauche.NOMBRE_CLUSTERS) {
-                // Si la longueur du mot est plus petite que le nombre de clusters on remplace la diference pour caracteres effaces
-                phonFlous = "<" + NetworkControl.insertionPhon(phonMod.substring(1, phonMod.length() - 1), CARAC_EFFAC, rFlousGauche.NOMBRE_CLUSTERS - NetworkControl.getLongueurPhon(phonMod)) + ">";
-                // Il réalise la propagation et decodage (0 est la fênetre initiale)
-                dFlousGauche.reconnaitreBottomUp(phonFlous, 0, true, 0);
-                // Il obtient les fanaux gagnants du decodage flous
-                for (LinkedList<Fanal> lst : dFlousGauche.getWinnersSeqBottomUpFlous(phonFlous)) {
-                    lstFanauxTriang.addAll(lst);
-                }
-
-            } else {
-                // Il réalise la propagation et decodage
-                dFlousGauche.reconnaitreBottomUp(phonMod, 0, true, 0);
-                // Il obtient les fanaux gagnants du decodage flous
-                for (LinkedList<Fanal> lst : dFlousGauche.getWinnersSeqBottomUpFlous(phonMod)) {
-                    lstFanauxTriang.addAll(lst);
-                }
-            }
-
-            lstFanauxTriangUnion.addAll(lstFanauxTriang);
-            /*for (Fanal f : lstFanauxTriang) {
-             lstFanauxTriangUnion.add(((FanalFlous) f).getMacroFanal());
-             }*/
-        } else {
-            LinkedList<Fanal> lstAux = new LinkedList<>();
-            lstAux.addAll(lstFanauxFlous);
-            activerConnectionsLaterales(lstAux, ACTIVATION_VERS_GAUCHE);
-            // Si il y a un reseau triangulaire de phonemes
-            rTriang = (TriangularNetwork) listeReseaux.get(NetworkControl.INDICE_RESEAU_TRIANG);
-            // Il prend le decodeur du Reseau Triangulaire
-            dTriang = (TriangularDecoder) (rTriang.getDecodeur());
-            lstFanauxTriang.addAll(dTriang.getWinnersBottomUpHyperDeuxNiveaux(phonLexique));
-            lstFanauxTriangUnion.addAll(lstFanauxTriang);
-        }
+        LinkedList<Fanal> lstAux = new LinkedList<>();
+        lstAux.addAll(fuzzyFanalsList);
+        InterfaceNetwork.this.activateLateralConnections(lstAux, ACTIVATION_TO_LEFT_SIDE);
+        // Si il y a un reseau triangulaire de phonemes
+        triangularNetwork = (TriangularNetwork) multimodalNetworks.get(NetworkControl.TRIANGULAR_NETWORK_INDEX);
+        // Il prend le decodeur du Reseau Triangulaire
+        triangularDecoder = (TriangularDecoder) (triangularNetwork.getDecoder());
+        triangularFanalsList.addAll(triangularDecoder.getWinnersTwoLevelsJumpDecoding(phonemes));
+        triangularFanalsSet.addAll(triangularFanalsList);
 
         // Ajoute la liste de gagnants des reseaux
-        if (ContextTypoNetwork.METRIQUES_PAR_RESEAU) {
-            this.listeFanauxDecodes.set(NetworkControl.INDICE_RESEAU_FLOUS_DROITE, lstFanauxFlousUnion);
-            ContextTypoNetwork.logger.warn("#Flous Mots # " + this.listeFanauxDecodes.get(NetworkControl.INDICE_RESEAU_FLOUS_DROITE).size());
-            if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES) {
-                this.listeFanauxDecodes.set(NetworkControl.INDICE_RESEAU_FLOUS_GAUCHE, lstFanauxTriangUnion);
-                ContextTypoNetwork.logger.warn("#Flous Phons # " + this.listeFanauxDecodes.get(NetworkControl.INDICE_RESEAU_FLOUS_GAUCHE).size());
-            } else {
-                this.listeFanauxDecodes.set(NetworkControl.INDICE_RESEAU_TRIANG, lstFanauxTriangUnion);
-                ContextTypoNetwork.logger.warn("#Triang # " + this.listeFanauxDecodes.get(NetworkControl.INDICE_RESEAU_TRIANG).size());
-            }
+        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+            this.decodedFanals.set(NetworkControl.FUZZY_NETWORK_INDEX, fuzzyFanalsSet);
+            ContextTypoNetwork.logger.warn("#Flous Mots # " + this.decodedFanals.get(NetworkControl.FUZZY_NETWORK_INDEX).size());
+
+            this.decodedFanals.set(NetworkControl.TRIANGULAR_NETWORK_INDEX, triangularFanalsSet);
+            ContextTypoNetwork.logger.warn("#Triang # " + this.decodedFanals.get(NetworkControl.TRIANGULAR_NETWORK_INDEX).size());
 
         }
 
         if (TriangularDecoder.UNION_BOOSTING) {
-            lstFanauxInf.addAll(lstFanauxTriangUnion);
+            inferiorFanalsList.addAll(triangularFanalsSet);
         } else {
-            lstFanauxInf.addAll(lstFanauxTriang);
-        }
-        if (!NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES) {
-            lstFanauxInf.addAll(lstFanauxFlousUnion);
-        } else {
-            lstFanauxInf.addAll(lstFanauxFlousUnion);
+            inferiorFanalsList.addAll(triangularFanalsList);
         }
 
-        ContextTypoNetwork.logger.debug("Nombre fanaux avant propagation :" + lstFanauxInf.size());
-        if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES || NetworkControl.ACTIVE_CONNECTIONS_LATERALES_TRIANG) {
+        inferiorFanalsList.addAll(fuzzyFanalsSet);
+
+        ContextTypoNetwork.logger.debug("Nombre fanaux avant propagation :" + inferiorFanalsList.size());
+        if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
             // À chaque recherche de mot on redemarre les activations laterales
             remiseZeroPropagationLaterale();
         }
 
-        return ((TriangularDecoder) this.getDecodeur()).getWinnersInterfaceReseaux(lstFanauxInf);
+        return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceReseaux(inferiorFanalsList);
     }
 
-    private void activerConnectionsLaterales(LinkedList<Fanal> fanauxActives, int directionActivation) {
-        for (Fanal f : fanauxActives) {
-            activerConnectionsLaterales(f, directionActivation);
+    private void activateLateralConnections(LinkedList<Fanal> activatedFanals, int directionActivation) {
+        for (Fanal f : activatedFanals) {
+            activateLateralConnections(f, directionActivation);
         }
 
     }
 
-    private void activerConnectionsLaterales(Fanal fanalActive, int directionActivation) {
+    private void activateLateralConnections(Fanal fanalActive, int directionActivation) {
         MacroFanal fmacro;
         // Convention: HyperSup est a droite et HyperInf est a gauche 
-        if (directionActivation == ACTIVATION_VERS_GAUCHE) {
-            for (Fanal f : fanalActive.getFanauxHyperInf()) {
-                if (NetworkControl.ACTIVE_LATERALE_MACRO) {
-                    fmacro = ((FanalFlous) f).getMacroFanal();
-                    if (fanauxActifsLateral.containsKey(fmacro)) {
-                        fanauxActifsLateral.put(fmacro, fanauxActifsLateral.get(fmacro) + 1);
-                    } else {
-                        fanauxActifsLateral.put(fmacro, 1);
-                    }
+        if (directionActivation == ACTIVATION_TO_LEFT_SIDE) {
+            for (Fanal f : fanalActive.getInferiorHyperFanals()) {
+
+                if (fanalScoreMap.containsKey(f)) {
+                    fanalScoreMap.put(f, fanalScoreMap.get(f) + 1);
                 } else {
-                    if (fanauxActifsLateral.containsKey(f)) {
-                        fanauxActifsLateral.put(f, fanauxActifsLateral.get(f) + 1);
-                    } else {
-                        fanauxActifsLateral.put(f, 1);
-                    }
+                    fanalScoreMap.put(f, 1);
                 }
-
             }
+
         } else {
-            for (Fanal f : fanalActive.getFanauxHyperSup()) {
-                if (NetworkControl.ACTIVE_LATERALE_MACRO) {
-                    fmacro = ((FanalFlous) f).getMacroFanal();
-                    if (fanauxActifsLateral.containsKey(fmacro)) {
-                        fanauxActifsLateral.put(fmacro, fanauxActifsLateral.get(fmacro) + 1);
-                    } else {
-                        fanauxActifsLateral.put(fmacro, 1);
-                    }
+            for (Fanal f : fanalActive.getSuperiorHyperFanals()) {
+
+                if (fanalScoreMap.containsKey(f)) {
+                    fanalScoreMap.put(f, fanalScoreMap.get(f) + 1);
                 } else {
-                    if (fanauxActifsLateral.containsKey(f)) {
-                        fanauxActifsLateral.put(f, fanauxActifsLateral.get(f) + 1);
-                    } else {
-                        fanauxActifsLateral.put(f, 1);
-                    }
+                    fanalScoreMap.put(f, 1);
                 }
 
             }
         }
     }
 
-    public double getTauxMatchingReseau(int indiceReseau, String motAppris) {
-        int nombreFanauxTrouves = 0;
-        HashSet<Fanal> fanauxGagnantsParReseau = listeFanauxDecodes.get(indiceReseau);
-        HashSet<Fanal> macroFanauxGagnantsParReseau = new HashSet<>();
-        LinkedList<Fanal> fanauxCorrects;
-        int nombreFanauxParClique;
-        if (indiceReseau == NetworkControl.INDICE_RESEAU_FLOUS_DROITE) {
-            if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_DROITE) {
-                int taille = motAppris.length();
-                for (int i = 0; i < ((FuzzyNetwork) this.listeReseaux.get(indiceReseau)).NOMBRE_CLUSTERS - taille; i++) {
-                    motAppris = motAppris + "*";
+    public double getMatchingRateNetwork(int networkIndex, String learntWords) {
+        int foundFanals = 0;
+        HashSet<Fanal> winnersFanalsPerNetwork = decodedFanals.get(networkIndex);
+        HashSet<Fanal> macroWinnersFanalsPerNetwork = new HashSet<>();
+        LinkedList<Fanal> correctFanals;
+        int fanalsPerClique;
+        if (networkIndex == NetworkControl.FUZZY_NETWORK_INDEX) {
+            // Substituir por uma unica funcao
+            if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+                int size = learntWords.length();
+                for (int i = 0; i < ((FuzzyNetwork) this.multimodalNetworks.get(networkIndex)).NUMBER_CLUSTERS - size; i++) {
+                    learntWords = learntWords + "*";
                 }
             }
 
-            fanauxCorrects = this.listeReseaux.get(indiceReseau).getListeNiveaux().get(0).getCliqueMot(motAppris).getListe();
-            for (Fanal f : fanauxGagnantsParReseau) {
-                macroFanauxGagnantsParReseau.add(((FanalFlous) f).getMacroFanal());
+            correctFanals = this.multimodalNetworks.get(networkIndex).getLevelsList().get(0).getWordClique(learntWords).getFanalsList();
+            for (Fanal f : winnersFanalsPerNetwork) {
+                macroWinnersFanalsPerNetwork.add(((FanalFlous) f).getMacroFanal());
             }
         } else {
-            if (NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES) {
-                if (ContextTypoNetwork.TAILLE_VARIABLE_RESEAU_FLOU_GAUCHE) {
-                    int taille = NetworkControl.getLongueurPhon(motAppris);
-                    for (int i = 0; i < ((FuzzyNetwork) this.listeReseaux.get(indiceReseau)).NOMBRE_CLUSTERS - taille; i++) {
-                        motAppris = motAppris + "##";
-                    }
-                }
-                fanauxCorrects = this.listeReseaux.get(indiceReseau).getListeNiveaux().get(0).getCliqueMot(motAppris).getListe();
-                for (Fanal f : fanauxGagnantsParReseau) {
-                    macroFanauxGagnantsParReseau.add(((FanalFlous) f).getMacroFanal());
-                }
-            } else {
-                fanauxCorrects = ((TriangularNetwork) this.listeReseaux.get(indiceReseau)).getNiveauSup().getCliqueMot(motAppris).getListe();
-            }
+
+            correctFanals = ((TriangularNetwork) this.multimodalNetworks.get(networkIndex)).getSuperiorLevel().getWordClique(learntWords).getFanalsList();
+
         }
-        if (NetworkControl.INDICE_RESEAU_FLOUS_DROITE == indiceReseau || (NetworkControl.INDICE_RESEAU_FLOUS_GAUCHE == indiceReseau && NetworkControl.ACTIVE_RESEAU_FLOUS_PHONEMES)) {
-            for (Fanal f : fanauxCorrects) {
-                if (macroFanauxGagnantsParReseau.contains(f)) {
-                    nombreFanauxTrouves++;
+        if (NetworkControl.FUZZY_NETWORK_INDEX == networkIndex) {
+            for (Fanal f : correctFanals) {
+                if (macroWinnersFanalsPerNetwork.contains(f)) {
+                    foundFanals++;
                 }
             }
-            nombreFanauxParClique = ((FuzzyNetwork) this.listeReseaux.get(indiceReseau)).NOMBRE_FANAUX_PAR_CLIQUE;
+            fanalsPerClique = ((FuzzyNetwork) this.multimodalNetworks.get(networkIndex)).FANALS_PER_CLIQUE;
         } else {
-            for (Fanal f : fanauxCorrects) {
-                if (fanauxGagnantsParReseau.contains(f)) {
-                    nombreFanauxTrouves++;
+            for (Fanal f : correctFanals) {
+                if (winnersFanalsPerNetwork.contains(f)) {
+                    foundFanals++;
                 }
             }
-            nombreFanauxParClique = ((TriangularNetwork) this.listeReseaux.get(indiceReseau)).NOMBRE_FANAUX_PAR_CLIQUE;
+            fanalsPerClique = ((TriangularNetwork) this.multimodalNetworks.get(networkIndex)).FANALS_PER_CLIQUE;
         }
 
-        return ((double) nombreFanauxTrouves) / nombreFanauxParClique;
+        return ((double) foundFanals) / fanalsPerClique;
     }
 
-    public HashSet<Fanal> getListeWinnersReseau(int indiceReseau) {
-        return this.listeFanauxDecodes.get(indiceReseau);
+    public HashSet<Fanal> getWinnersFanalsNetwork(int indiceReseau) {
+        return this.decodedFanals.get(indiceReseau);
     }
 
-    public Network getReseau(int indiceReseau) {
-        return this.listeReseaux.get(indiceReseau);
+    public Network getNetwork(int indiceReseau) {
+        return this.multimodalNetworks.get(indiceReseau);
     }
 
     private void remiseZeroPropagationLaterale() {
-        fanauxActifsLateral = new HashMap<>();
+        fanalScoreMap = new HashMap<>();
     }
 
 }

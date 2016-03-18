@@ -30,12 +30,12 @@ public abstract class Level {
         return this.sousGraphe;
     }
 
-    public boolean existeClique(String info) {
+    public boolean existsClique(String info) {
         return mapCliquesStr.containsKey(info);
     }
     
-    public Clique getCliqueMot(String mot) {
-        if (!this.existeClique(mot)) {
+    public Clique getWordClique(String mot) {
+        if (!this.existsClique(mot)) {
             return null;
         }
         return this.mapCliquesStr.get(mot);
@@ -104,10 +104,10 @@ public abstract class Level {
             LinkedList<Fanal> listeB = new LinkedList<>();
             
             // On cherche les fanaux correspondants aux 2 cliques inferieures dans le sous-graphe
-            for (Fanal f : l_clique.getListe()) {
+            for (Fanal f : l_clique.getFanalsList()) {
                 listeA.addLast(g.getNumerotation().elementAt(l_graphe.getNumerotation().numero(f)));
             }
-            for (Fanal f : r_clique.getListe()) {
+            for (Fanal f : r_clique.getFanalsList()) {
                 listeB.addLast(g.getNumerotation().elementAt(r_graphe.getNumerotation().numero(f)));
             }
             TournamentChain c = new TournamentChain(listeA, listeB);            
