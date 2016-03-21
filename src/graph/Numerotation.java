@@ -37,11 +37,11 @@ public class Numerotation {
 
     }
 
-    public int taille() {
+    public int size() {
         return graphFanals.size();
     }
 
-    public boolean ajouterElement(Fanal f) {
+    public boolean addElement(Fanal f) {
         if (!mapFanalIndex.containsKey(f)) {
             counterFanals++;
             mapFanalIndex.put(f, counterFanals);
@@ -53,11 +53,11 @@ public class Numerotation {
 
     // Renvoie le numero du sommet
 
-    public int numero(Fanal f) {
+    public int getNumber(Fanal f) {
         return mapFanalIndex.get(f);
     }
 
-    public Fanal elementAt(int i) {
+    public Fanal getElement(int i) {
         return graphFanals.get(i);
     }
 
@@ -65,7 +65,7 @@ public class Numerotation {
         return graphFanals;
     }
 
-    public int ajouterCluster() {
+    public int addCluster() {
         counterClusters++;
         // Redemarre une liste de fanaux
         clustersList.add(counterClusters, new LinkedList<Fanal>());
@@ -76,8 +76,8 @@ public class Numerotation {
 
     // Ajoute le sommet dans le cluster
 
-    public boolean ajouterSommetCluster(int iCluster, Fanal f) {
-        if (iCluster <= counterClusters && !existeFanalCluster(iCluster, f)) {
+    public boolean addFanalCluster(int iCluster, Fanal f) {
+        if (iCluster <= counterClusters && !existsFanalCluster(iCluster, f)) {
             clustersList.get(iCluster).addLast(f);
             mapFanalCluster.put(f, iCluster);
             // Augmente la capacité du cluster
@@ -90,7 +90,7 @@ public class Numerotation {
 
     // Verifie si le sommet déja existe dans le cluster
 
-    public boolean existeFanalCluster(int iCluster, Fanal s) {
+    public boolean existsFanalCluster(int iCluster, Fanal s) {
         if (iCluster <= counterClusters) {
             for (Fanal stemp : clustersList.get(iCluster)) {
                 if (stemp.equals(s)) {
@@ -103,7 +103,7 @@ public class Numerotation {
         }
     }
 
-    public void utiliserFanal(Fanal f) {
+    public void useFanal(Fanal f) {
         // Fixe comme utilisé
         f.setUsed(true);
         // Diminue la capacité du cluster
@@ -116,7 +116,7 @@ public class Numerotation {
         return mapFanalCluster.get(f);
     }
 
-    public int getCompteurClusters() {
+    public int getClustersCounter() {
         return this.counterClusters;
     }
 

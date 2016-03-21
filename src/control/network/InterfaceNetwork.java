@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import model.Clique;
 import model.Fanal;
-import model.FanalFlous;
+import model.FuzzyFanal;
 import model.MacroFanal;
 
 public class InterfaceNetwork extends TriangularNetwork implements LetterInformation {
@@ -255,7 +255,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
             correctFanals = this.multimodalNetworks.get(networkIndex).getLevelsList().get(0).getWordClique(learntWords).getFanalsList();
             for (Fanal f : winnersFanalsPerNetwork) {
-                macroWinnersFanalsPerNetwork.add(((FanalFlous) f).getMacroFanal());
+                macroWinnersFanalsPerNetwork.add(((FuzzyFanal) f).getMacroFanal());
             }
         } else {
 

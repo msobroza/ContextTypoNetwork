@@ -30,18 +30,18 @@ public class TriangularGraph extends Graph {
         Fanal t;
         for (int i = 0; i < this.numerotation.getListeClusters().size(); i++) {
             //Ajoute tous les clusters dans le graphe
-            G.numerotation.ajouterCluster();
+            G.numerotation.addCluster();
         }
         for (int i = 0; i < n; i++) {
             // Ajoute les n sommes dans le graphe
-            s = this.numerotation.elementAt(i);
+            s = this.numerotation.getElement(i);
             t = new Fanal(s, 0);
             // Duplie le fanal
             t.setFanalName("h:" + h + "," + t.getFanalName());
             G.addNode(t);
-            t = G.numerotation.elementAt(i);
+            t = G.numerotation.getElement(i);
             // Ajoute le sommet dans le bon cluster
-            G.numerotation.ajouterSommetCluster(this.numerotation.numCluster(s), t);
+            G.numerotation.addFanalCluster(this.numerotation.numCluster(s), t);
         }
         for (int i = 0; i < n; i++) {
             // Recopie la liste des arcs d'une ligne
@@ -58,15 +58,15 @@ public class TriangularGraph extends Graph {
 
     @Override
     public void addNode(Fanal s) {
-        if (this.numerotation.ajouterElement(s)) // Modifiquei set por add
+        if (this.numerotation.addElement(s)) // Modifiquei set por add
         {
-            L.add(this.numerotation.numero(s), new ArrayList<Edge>());
+            L.add(this.numerotation.getNumber(s), new ArrayList<Edge>());
         }
     }
 
     @Override
     public boolean existsEdge(Fanal s, Fanal t) {
-        for (Edge a : L.get(numerotation.numero(s))) {
+        for (Edge a : L.get(numerotation.getNumber(s))) {
             if ((a.getDestinationFanal()).equals(t)) {
                 return true;
             }
@@ -75,8 +75,8 @@ public class TriangularGraph extends Graph {
 
     }
 
-    public boolean existeArc(int i, int j) {
-        Fanal t = numerotation.elementAt(j);
+    public boolean existsEdge(int i, int j) {
+        Fanal t = numerotation.getElement(j);
         for (Edge a : L.get(i)) {
             if (a.getDestinationFanal().equals(t)) {
                 return true;
@@ -89,21 +89,21 @@ public class TriangularGraph extends Graph {
     public void addEdge(Fanal s, Fanal t, int val, boolean oriente) {
         this.addNode(s);
         this.addNode(t);
-        int si = this.numerotation.numero(s);
+        int si = this.numerotation.getNumber(s);
         L.get(si).add(new Edge(s, t, val, oriente));
         arcsCompteur++;
 
     }
 
     public void ajouterArc(int i, int j, int val, boolean oriente) {
-        L.get(i).add(new Edge(this.numerotation.elementAt(i),
-                this.numerotation.elementAt(j), val, oriente));
+        L.get(i).add(new Edge(this.numerotation.getElement(i),
+                this.numerotation.getElement(j), val, oriente));
         arcsCompteur++;
     }
 
     @Override
     public int getEdgeValue(Fanal s, Fanal t) {
-        for (Edge a : L.get(this.numerotation.numero(s))) {
+        for (Edge a : L.get(this.numerotation.getNumber(s))) {
             if (a.getDestinationFanal().equals(t)) {
                 return a.getValue();
             }
@@ -113,7 +113,7 @@ public class TriangularGraph extends Graph {
 
     @Override
     public Edge getEdge(Fanal s, Fanal t) {
-        for (Edge a : L.get(this.numerotation.numero(s))) {
+        for (Edge a : L.get(this.numerotation.getNumber(s))) {
             if (a.getDestinationFanal().equals(t)) {
                 return a;
             }
@@ -123,13 +123,13 @@ public class TriangularGraph extends Graph {
 
     @Override
     public Edge[] getEdgesList(Fanal s) {
-        ArrayList<Edge> lst = L.get(this.numerotation.numero(s));
+        ArrayList<Edge> lst = L.get(this.numerotation.getNumber(s));
 
         return (Edge[]) lst.toArray(new Edge[lst.size()]);
     }
 
     public int valeurArc(int i, int j) {
-        Fanal t = this.numerotation.elementAt(j);
+        Fanal t = this.numerotation.getElement(j);
         for (Edge a : L.get(i)) {
             if (a.getDestinationFanal().equals(t)) {
                 return a.getValue();
@@ -140,21 +140,21 @@ public class TriangularGraph extends Graph {
 
     @Override
     public void removeEdge(Fanal s, Fanal t) {
-        int si = this.numerotation.numero(s);
+        int si = this.numerotation.getNumber(s);
         Edge a = null;
-        for (Edge atemp : L.get(this.numerotation.numero(s))) {
+        for (Edge atemp : L.get(this.numerotation.getNumber(s))) {
             if (atemp.getDestinationFanal().equals(t)) {
                 a = atemp;
                 break;
             }
         }
         if (a != null) {
-            L.get(this.numerotation.numero(s)).remove(a);
+            L.get(this.numerotation.getNumber(s)).remove(a);
         }
     }
 
-    public void modifierValeur(Fanal s, Fanal t, int val) {
-        for (Edge a : L.get(this.numerotation.numero(s))) {
+    public void modifyValue(Fanal s, Fanal t, int val) {
+        for (Edge a : L.get(this.numerotation.getNumber(s))) {
             if (a.getDestinationFanal().equals(t)) {
                 a.setValue(val);
                 return;
@@ -163,8 +163,8 @@ public class TriangularGraph extends Graph {
 
     }
 
-    public ArrayList<Edge> voisins(Fanal s) {
-        return L.get(this.numerotation.numero(s));
+    public ArrayList<Edge> neighboors(Fanal s) {
+        return L.get(this.numerotation.getNumber(s));
     }
 
     @Override

@@ -2,21 +2,21 @@ package model;
 
 import java.util.LinkedList;
 
-public class MacroFanal extends FanalFlous {
+public class MacroFanal extends FuzzyFanal {
 
-    private LinkedList<FanalFlous> listFanaux;
+    private LinkedList<FuzzyFanal> listFanaux;
 
     public MacroFanal(String nom, int score) {
         super(nom, score);
         listFanaux = new LinkedList<>();
     }
 
-    public MacroFanal(FanalFlous f, int score) {
+    public MacroFanal(FuzzyFanal f, int score) {
         super(f, score);
         listFanaux = new LinkedList<>();
     }
 
-    public boolean addFanal(FanalFlous f) {
+    public boolean addFanal(FuzzyFanal f) {
         if (!listFanaux.contains(f)) {
             listFanaux.add(f);
             f.setMacroFanal(this);
@@ -26,11 +26,11 @@ public class MacroFanal extends FanalFlous {
         }
     }
 
-    public LinkedList<FanalFlous> getListFanaux() {
+    public LinkedList<FuzzyFanal> getListFanaux() {
         return listFanaux;
     }
 
-    public void setListFanaux(LinkedList<FanalFlous> listFanaux) {
+    public void setListFanaux(LinkedList<FuzzyFanal> listFanaux) {
         this.listFanaux = listFanaux;
     }
 }

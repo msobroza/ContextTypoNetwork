@@ -105,10 +105,10 @@ public abstract class Level {
             
             // On cherche les fanaux correspondants aux 2 cliques inferieures dans le sous-graphe
             for (Fanal f : l_clique.getFanalsList()) {
-                listeA.addLast(g.getNumerotation().elementAt(l_graphe.getNumerotation().numero(f)));
+                listeA.addLast(g.getNumerotation().getElement(l_graphe.getNumerotation().getNumber(f)));
             }
             for (Fanal f : r_clique.getFanalsList()) {
-                listeB.addLast(g.getNumerotation().elementAt(r_graphe.getNumerotation().numero(f)));
+                listeB.addLast(g.getNumerotation().getElement(r_graphe.getNumerotation().getNumber(f)));
             }
             TournamentChain c = new TournamentChain(listeA, listeB);            
             if (createTournamentChain(listeA, listeB, g)) {

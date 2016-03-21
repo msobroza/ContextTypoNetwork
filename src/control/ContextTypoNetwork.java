@@ -11,12 +11,17 @@ import java.util.Map;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import tools.FileIO;
+import tools.interface_cuda.CUDAContextInterface;
+import tools.interface_cuda.CUDAInterfaceClientFactory;
+import tools.interface_cuda.InterfaceSender;
 
 public class ContextTypoNetwork {
 
-    
-    public static int nblettres =7;
+    public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
+    public static final int CUDA_SERVER_PORTNUMBER = 9090;
+    public static int nblettres = 7;
     // Interaction fichiers
     public static boolean FILE_INTERACTION = true;
     // Training file
@@ -32,38 +37,47 @@ public class ContextTypoNetwork {
 
     public static void main(String[] args) throws FileNotExists {
 
-        BasicConfigurator.configure();
-        logger.setLevel(Level.ALL);
-        NetworkControl cr = new NetworkControl();
-        // Apprentissage et decodage des mots
-        if (FILE_INTERACTION) {
-            if (!FileIO.fileExists(train_words_file)) {
-                throw new FileNotExists(train_words_file);
+        try {
+            BasicConfigurator.configure();
+            logger.setLevel(Level.ALL);
+            NetworkControl cr = new NetworkControl();
+            // Apprentissage et decodage des mots
+            if (FILE_INTERACTION) {
+                if (!FileIO.fileExists(train_words_file)) {
+                    throw new FileNotExists(train_words_file);
+                }
+                CUDAInterfaceClientFactory seqSender = new CUDAInterfaceClientFactory(CUDA_SERVER_HOSTNAME, CUDA_SERVER_PORTNUMBER);
+                seqSender.openConnection();
+                CUDAContextInterface.Client client = seqSender.getCUDAContextInterfaceClient();
+                client.createContextNetwork(1, "caca");
+                seqSender.closeConnection();
+
+                HashMap<Integer, List<String>> trainInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
+                cr.learningPhase(trainInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
             }
-            
-            HashMap<Integer, List<String>> trainInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
-            cr.learningPhase(trainInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
-        }
 
-        ContextTypoNetwork.logger.debug("Apprentissage OK! ");
+            ContextTypoNetwork.logger.debug("Apprentissage OK! ");
 
-        if (FILE_INTERACTION) {
-            if (!FileIO.fileExists(test_words_file)) {
-                throw new FileNotExists(test_words_file);
+            if (FILE_INTERACTION) {
+                if (!FileIO.fileExists(test_words_file)) {
+                    throw new FileNotExists(test_words_file);
+                }
+                HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_words_file));
+                cr.decoderPhase(testInput.get(ConfigFile.TestWords.WORDS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS_PHONS.getIndex()).subList(0, 100));
             }
-            HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_words_file));
-            cr.decoderPhase(testInput.get(ConfigFile.TestWords.WORDS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS_PHONS.getIndex()).subList(0, 100));
-        }
 
-        if (ContextTypoNetwork.RATES_PER_NETWORK) {
-            System.out.println("Taux matching Reseau Triang: " + cr.getMatchingRate(NetworkControl.TRIANGULAR_NETWORK_INDEX));
-            System.out.println("Taux d'erreur Reseau Triang: " + cr.getErrorRate(NetworkControl.TRIANGULAR_NETWORK_INDEX));
-            System.out.println("Taux matching Reseau Flous: " + cr.getMatchingRate(NetworkControl.FUZZY_NETWORK_INDEX));
-            System.out.println("Taux d'erreur Reseau Flous: " + cr.getErrorRate(NetworkControl.FUZZY_NETWORK_INDEX));
-        }
+            if (ContextTypoNetwork.RATES_PER_NETWORK) {
+                System.out.println("Taux matching Reseau Triang: " + cr.getMatchingRate(NetworkControl.TRIANGULAR_NETWORK_INDEX));
+                System.out.println("Taux d'erreur Reseau Triang: " + cr.getErrorRate(NetworkControl.TRIANGULAR_NETWORK_INDEX));
+                System.out.println("Taux matching Reseau Flous: " + cr.getMatchingRate(NetworkControl.FUZZY_NETWORK_INDEX));
+                System.out.println("Taux d'erreur Reseau Flous: " + cr.getErrorRate(NetworkControl.FUZZY_NETWORK_INDEX));
+            }
 
-        System.out.println("Taux matching: " + cr.getMatchingRate());
-        System.out.println("Taux erreur: " + cr.getErrorRate());
+            System.out.println("Taux matching: " + cr.getMatchingRate());
+            System.out.println("Taux erreur: " + cr.getErrorRate());
+        } catch (TException ex) {
+            java.util.logging.Logger.getLogger(ContextTypoNetwork.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
 
     }
 

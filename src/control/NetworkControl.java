@@ -19,7 +19,7 @@ public class NetworkControl implements LetterInformation {
     public static final int TRIANGULAR_NETWORK_INDEX = 0;
     public static final int INDICE_RESEAU_FLOUS_GAUCHE = 0;
     public static final int FUZZY_NETWORK_INDEX = 1;
-    public static final int RESEAU_TRIANG = 0;
+    public static final int TRIANGULAR_NETWORK = 0;
     public static final int FUZZY_NETWORK = 1;
 
     // Il cree un reseau interface (triangulaire et flous)

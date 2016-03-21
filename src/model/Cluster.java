@@ -7,9 +7,9 @@ public class Cluster {
 
     private String name;
     // Liste des fanaux du cluster
-    private LinkedList<FanalFlous> fuzzyFanalsList;
+    private LinkedList<FuzzyFanal> fuzzyFanalsList;
     private LinkedList<MacroFanal> macroFanalsList;
-    private HashMap<String, FanalFlous> mapIndexFuzzyFanal;
+    private HashMap<String, FuzzyFanal> mapIndexFuzzyFanal;
     private HashMap<String, MacroFanal> mapIndexMacroFanal;
     private boolean used;
 
@@ -23,7 +23,7 @@ public class Cluster {
         used = false;
     }
 
-    public void addFanal(FanalFlous f) {
+    public void addFanal(FuzzyFanal f) {
         this.fuzzyFanalsList.add(f);
         f.setCluster(this);
     }
@@ -33,7 +33,7 @@ public class Cluster {
         mf.setCluster(this);
     }
 
-    public boolean linkFanalLetter(FanalFlous f, String lettre) {
+    public boolean linkFanalLetter(FuzzyFanal f, String lettre) {
         if (!mapIndexFuzzyFanal.containsKey(lettre)) {
             mapIndexFuzzyFanal.put(lettre, f);
             return true;
@@ -57,11 +57,11 @@ public class Cluster {
         this.name = nom;
     }
 
-    public FanalFlous getFanal(int i) {
+    public FuzzyFanal getFanal(int i) {
         return fuzzyFanalsList.get(i);
     }
 
-    public FanalFlous getFanal(String lettre) {
+    public FuzzyFanal getFanal(String lettre) {
         return mapIndexFuzzyFanal.get(lettre);
     }
 
@@ -96,7 +96,7 @@ public class Cluster {
         return name.hashCode();
     }
 
-    public LinkedList<FanalFlous> getFanalsList() {
+    public LinkedList<FuzzyFanal> getFanalsList() {
         return fuzzyFanalsList;
     }
 }

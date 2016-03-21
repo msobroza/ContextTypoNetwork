@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import model.Clique;
 import model.Cluster;
-import model.FanalFlous;
+import model.FuzzyFanal;
 import model.MacroFanal;
 
 public class FuzzyNetwork extends Network {
@@ -108,7 +108,7 @@ public class FuzzyNetwork extends Network {
 
     private void createStandartLevel() {
         MacroFanal mf;
-        FanalFlous f;
+        FuzzyFanal f;
         Cluster c;
         String letter;
         this.standartLevel = new FuzzyLevel(hCounter, this);
@@ -148,7 +148,7 @@ public class FuzzyNetwork extends Network {
                     // Ajout des fanaux dans le macrofanal
                     for (int iFanal = 0; iFanal < nbFanauxParMF; iFanal++) {
                         // Creer un nouveau sommet
-                        f = new FanalFlous("c:" + iClust + ",mf:" + iMFanal + ",f:" + iFanal, 0);
+                        f = new FuzzyFanal("c:" + iClust + ",mf:" + iMFanal + ",f:" + iFanal, 0);
                         // Associe la lettre au fanal
                         f.setLettre(letter);
                         // Ajouter le fanal dans le macrofanal
@@ -160,7 +160,7 @@ public class FuzzyNetwork extends Network {
             } else {
                 for (int iFanal = 0; iFanal < FANALS_PER_CLUSTER; iFanal++) {
                     // Creer un nouveau sommet
-                    f = new FanalFlous("c:" + iClust + ",mf:" + iFanal, 0);
+                    f = new FuzzyFanal("c:" + iClust + ",mf:" + iFanal, 0);
                     if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
                         letter = PHONEMES_LIA[iFanal];
                     } else {
@@ -322,7 +322,7 @@ public class FuzzyNetwork extends Network {
     public int mitosis() {
         // Pour tout les macrofanaux, si le dernier des fanaux créé est saturé, on crée un nouveau fanal
         MacroFanal mf;
-        FanalFlous f;
+        FuzzyFanal f;
         FuzzyGraph G = (FuzzyGraph) this.getLevelsList().get(0).getGraph();
         int nbMitose = 0;
         for (int k = 0; k < G.getNumberMacroFanals(); k++) {
@@ -333,7 +333,7 @@ public class FuzzyNetwork extends Network {
             // Si le dernier fanal créé dans le macrofanal est saturé, on crée un nouveau fanal dans le macrofanal
             if (f.getInDegree() >= FuzzyNetwork.THRESHOLD_DEG_MITOSE) {
                 // Creer un nouveau sommet
-                FanalFlous fNew = new FanalFlous(f, 0);
+                FuzzyFanal fNew = new FuzzyFanal(f, 0);
                 // Rennomer le fanal
                 fNew.setFanalName(mf.getFanalName() + ",f:" + mf.getListFanaux().size());
                 // Ajouter le fanal dans le macrofanal
@@ -392,7 +392,7 @@ public class FuzzyNetwork extends Network {
         return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getDistributionInDegree();
     }
 
-    public ArrayList<FanalFlous> getFanauxGrandDegE(int seuilDegMitose) {
+    public ArrayList<FuzzyFanal> getFanauxGrandDegE(int seuilDegMitose) {
         return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getFanauxGrandDegE(seuilDegMitose);
     }
 

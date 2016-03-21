@@ -77,7 +77,7 @@ public class PhonemeRules implements LetterInformation {
     }
 
     // Conversion des formats -> liste de phonemes correctes pour une liste d'une liste de phonemes
-    public static LinkedList<List<String>> correctesPhonemesToList(List<String> phonsCorrectes) {
+    public static LinkedList<List<String>> correctsPhonemesToList(List<String> phonsCorrectes) {
         LinkedList<List<String>> result = new LinkedList<>();
         List<String> listePhons;
         for (String phon : phonsCorrectes) {

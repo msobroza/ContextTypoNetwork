@@ -137,7 +137,7 @@ public class TriangularDecoder extends Decoder {
                 remiseZero(h - 1);
                 // Si il est le dernier element 
                 if ((i + 1) == seqsTopDownCounter[h]) {
-                    if (r.PROPAG_LATERALE && h != -1) {
+                    if (r.LATERAL_PROPAGATION && h != -1) {
                         // Activer le sequence lateral du element (h-1,i)
                         activerChaineTournois(seqsPropagTopDown.get(h - 1).get(i), h - 1);
                     }
@@ -158,7 +158,7 @@ public class TriangularDecoder extends Decoder {
                     seqsPropagTopDown.get(h - 1).put(i + 1, winnerListe);
                 } else {
                     propagationSofSSeqTopDown(h, i, TriangularDecoder.RIGHT);
-                    if (r.PROPAG_LATERALE && h != -1) {
+                    if (r.LATERAL_PROPAGATION && h != -1) {
                         // Activer le sequence lateral du element (h-1,i)
                         activerChaineTournois(seqsPropagTopDown.get(h - 1).get(i), h - 1);
                     }
@@ -204,7 +204,6 @@ public class TriangularDecoder extends Decoder {
     }
 
     // ------------- Decodage Bottom-up-------------------
-
     public boolean reconnaitreBottomUpPhoneme(List<String> listeS, int side, boolean begin, boolean end) {
         String seqLeft = "";
         String seqRight = "";
@@ -274,7 +273,7 @@ public class TriangularDecoder extends Decoder {
     }
 
     // Méthode du decodage bottom up Hyper
-    public boolean reccognizeBottomUpHyperLetters(String s) {
+    public boolean recognizeBottomUpHyperLetters(String s) {
         boolean last = false;
         for (int i = 0; i < s.length(); i++) {
             if (i == s.length() - 1) {
@@ -288,7 +287,7 @@ public class TriangularDecoder extends Decoder {
         return last;
     }
 
-    public boolean reccognizeBottomUpHyper3Levels(String mot) {
+    public boolean recognizeBottomUpHyper3Levels(String mot) {
 
         boolean last = false;
         LinkedList<Fanal> winnerListe;
@@ -316,7 +315,7 @@ public class TriangularDecoder extends Decoder {
                             f.setScore(f.getScore() + GAMA_1);
                             activerConnexionsFanal(f, 1);
                         }
-                        if (r.MEIOSE && r.WINNER_SIDE) {
+                        if (r.MEIOSIS && r.WINNER_SIDE) {
                             if (r.WINNER_PARTITIONS) {
                                 winnerListe = new LinkedList<>();
                                 for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -344,7 +343,7 @@ public class TriangularDecoder extends Decoder {
                 // Il mémorise les fanaux qui seront propagés au dernier (2 niveau)
                 bestScoresBottomUpLast = unionSets(bestScoresBottomUpLast, winnerListe);
                 if (bi == 0) { // Il est le premier bigramme
-                    if (r.PROPAG_LATERALE) {
+                    if (r.LATERAL_PROPAGATION) {
                         // Il active les sequences laterales
                         this.activerChaineTournois(winnerListe, 1);
 
@@ -390,7 +389,7 @@ public class TriangularDecoder extends Decoder {
         return true;
     }
 
-    public boolean reccognizeBottomUpHyper2Levels(String mot) {
+    public boolean recognizeBottomUpHyper2Levels(String mot) {
 
         boolean last = false;
         for (int i = 0; i < mot.length(); i++) {
@@ -415,7 +414,7 @@ public class TriangularDecoder extends Decoder {
                     f.setScore(f.getScore() + GAMA_1);
                     activerConnexionsFanal(f, 1);
                 }
-                if (r.MEIOSE && r.WINNER_SIDE) {
+                if (r.MEIOSIS && r.WINNER_SIDE) {
                     if (r.WINNER_PARTITIONS) {
                         winnerListe = new LinkedList<>();
                         for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -449,7 +448,7 @@ public class TriangularDecoder extends Decoder {
             //}
             ContextTypoNetwork.logger.debug("Jonction fanaux de bigrammes: " + bestScoresBottomUp.get(1).size());
             if (!last) {
-                if (r.PROPAG_LATERALE) {
+                if (r.LATERAL_PROPAGATION) {
                     // Il active les sequences laterales
                     this.activerChaineTournois(winnerListe, 1);
                 }
@@ -466,7 +465,7 @@ public class TriangularDecoder extends Decoder {
         return last;
     }
 
-    public boolean reccognizeBottomUpHyper2Levels(LinkedList<List<String>> mot, String motRecherche) {
+    public boolean recognizeBottomUpHyper2Levels(LinkedList<List<String>> mot, String motRecherche) {
 
         boolean last = false;
         for (int i = 0; i < mot.size(); i++) {
@@ -494,7 +493,7 @@ public class TriangularDecoder extends Decoder {
                     f.setScore(f.getScore() + GAMA_1);
                     activerConnexionsFanal(f, 1);
                 }
-                if (r.MEIOSE && r.WINNER_SIDE) {
+                if (r.MEIOSIS && r.WINNER_SIDE) {
                     if (r.WINNER_PARTITIONS) {
                         winnerListe = new LinkedList<>();
                         for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -528,7 +527,7 @@ public class TriangularDecoder extends Decoder {
             //}
             ContextTypoNetwork.logger.debug("Jonction fanaux de bigrammes: " + bestScoresBottomUp.get(1).size());
             if (!last) {
-                if (r.PROPAG_LATERALE) {
+                if (r.LATERAL_PROPAGATION) {
                     // Il active les sequences laterales
                     this.activerChaineTournois(winnerListe, 1);
                 }
@@ -817,7 +816,7 @@ public class TriangularDecoder extends Decoder {
                         f.setScore(f.getScore() + GAMA_1);
                         activerConnexionsFanal(f, h);
                     }
-                    if (r.MEIOSE && r.WINNER_SIDE) {
+                    if (r.MEIOSIS && r.WINNER_SIDE) {
                         if (r.WINNER_PARTITIONS) {
                             winnerListe = new LinkedList<>();
                             for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -872,7 +871,7 @@ public class TriangularDecoder extends Decoder {
                 remiseZero(h - 1);
                 remiseZero(h);
                 if (side == TriangularDecoder.LEFT) {
-                    if (r.PROPAG_LATERALE) {
+                    if (r.LATERAL_PROPAGATION) {
                         // Il active les sequences laterales
                         this.activerChaineTournois(winnerListe, h);
                     }
@@ -906,7 +905,7 @@ public class TriangularDecoder extends Decoder {
                         f.setScore(f.getScore() + GAMA_1);
                         activerConnexionsFanal(f, h);
                     }
-                    if (r.MEIOSE && r.WINNER_SIDE) {
+                    if (r.MEIOSIS && r.WINNER_SIDE) {
                         if (r.WINNER_PARTITIONS) {
                             winnerListe = new LinkedList<>();
                             for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -974,7 +973,7 @@ public class TriangularDecoder extends Decoder {
                 remiseZero(h);
                 if (side == TriangularDecoder.LEFT) {
 
-                    if (r.PROPAG_LATERALE) {
+                    if (r.LATERAL_PROPAGATION) {
                         ContextTypoNetwork.logger.debug("Sequence left chaine: " + seq + " Nombre fanaux: " + winnerListe.size());
                         // Il active les sequences laterales
                         this.activerChaineTournois(winnerListe, h);
@@ -1169,7 +1168,7 @@ public class TriangularDecoder extends Decoder {
                 f.setScore(f.getScore() + GAMA_1);
                 activerConnexionsFanal(f, h);
             }
-            if (r.MEIOSE && r.WINNER_SIDE) {
+            if (r.MEIOSIS && r.WINNER_SIDE) {
                 if (r.WINNER_PARTITIONS) {
                     winnerListe = new LinkedList<>();
                     for (int j = 1; j <= r.WINNER_N_PARTITIONS_PAR_SIDE; j++) {
@@ -1218,7 +1217,7 @@ public class TriangularDecoder extends Decoder {
             remiseZero(h - 1);
             remiseZero(h);
             if (side == TriangularDecoder.LEFT) {
-                if (r.PROPAG_LATERALE) {
+                if (r.LATERAL_PROPAGATION) {
                     // Il active les sequences laterales
                     this.activerChaineTournois(winnerListe, h);
                 }
@@ -1264,15 +1263,8 @@ public class TriangularDecoder extends Decoder {
             // Il active les sequences laterales
             //this.activerChaineTournois(winnerListe,h);
             // Il memorise les winners de la clique à gauche
-            if (r.TESTE_INSERTIONS_LEFT) {
-                if (c.getInfo().equals("<")) {
-                    bestScoresBottomUp.set(0, c.getFanalsList());
-                } else {
-                    bestScoresBottomUp.set(0, unionSets(n.getRandomCliqueLetter().getFanalsList(), c.getFanalsList()));
-                }
-            } else {
-                bestScoresBottomUp.set(0, c.getFanalsList());
-            }
+
+            bestScoresBottomUp.set(0, c.getFanalsList());
 
         }
         remiseZero(0);
@@ -1318,26 +1310,18 @@ public class TriangularDecoder extends Decoder {
             // Il active les sequences laterales
             //this.activerChaineTournois(winnerListe,h);
             // Il memorise les winners de la clique à gauche
-            if (r.TESTE_INSERTIONS_LEFT) {
-                if (c.getInfo().equals("<")) {
+
+            for (int i = 0; i < lettreListeCopie.size(); i++) {
+                c = n.getCliqueLetter(lettreListeCopie.get(0));
+                if (i == 0) {
                     bestScoresBottomUp.set(0, c.getFanalsList());
                 } else {
-                    bestScoresBottomUp.set(0, unionSets(n.getRandomCliqueLetter().getFanalsList(), c.getFanalsList()));
-                }
-            } else {
-                for (int i = 0; i < lettreListeCopie.size(); i++) {
-                    c = n.getCliqueLetter(lettreListeCopie.get(0));
-                    if (i == 0) {
-                        bestScoresBottomUp.set(0, c.getFanalsList());
+                    if (r.UNION) {
+                        // Il réalise l'union des listes
+                        bestScoresBottomUp.set(0, unionSets(bestScoresBottomUp.get(0), c.getFanalsList()));
                     } else {
-                        if (r.UNION) {
-                            // Il réalise l'union des listes
-                            bestScoresBottomUp.set(0, unionSets(bestScoresBottomUp.get(0), c.getFanalsList()));
-                        } else {
-                            bestScoresBottomUp.set(0, joinSets(bestScoresBottomUp.get(0), c.getFanalsList()));
-                        }
+                        bestScoresBottomUp.set(0, joinSets(bestScoresBottomUp.get(0), c.getFanalsList()));
                     }
-
                 }
 
             }
@@ -1369,7 +1353,6 @@ public class TriangularDecoder extends Decoder {
             }
         }
     }
-
 
     public void activerConnexionsFanal(Fanal f, int h, int score) {
         Fanal l;
@@ -1405,7 +1388,7 @@ public class TriangularDecoder extends Decoder {
                 if (listeArc[i].getSourceFanal().equals(f_sous)) {
                     l = listeArc[i].getDestinationFanal();
                     listeArc[i].setActive(true);
-                    f_niv = n.getGraph().getNumerotation().elementAt(n.getSubGraphe().getNumerotation().numero(l));
+                    f_niv = n.getGraph().getNumerotation().getElement(n.getSubGraphe().getNumerotation().getNumber(l));
                     f_niv.setScore(f_niv.getScore() + 1);
                 }
             }
@@ -1449,7 +1432,7 @@ public class TriangularDecoder extends Decoder {
         Fanal f_sous;
         for (Fanal f : lst) {
             //System.out.println("Il active le tournois: "+f);
-            f_sous = n.getSubGraphe().getNumerotation().elementAt(n.getGraph().getNumerotation().numero(f));
+            f_sous = n.getSubGraphe().getNumerotation().getElement(n.getGraph().getNumerotation().getNumber(f));
             activerConnectionsChaineTournois(f_sous, h);
         }
     }
@@ -1459,7 +1442,7 @@ public class TriangularDecoder extends Decoder {
         TriangularLevel n = (TriangularLevel) r.getLevelsList().get(h);
         Fanal f_sous;
         for (Fanal f : lst) {
-            f_sous = n.getSubGraphe().getNumerotation().elementAt(niveauFanauxInf.getGraph().getNumerotation().numero(f));
+            f_sous = n.getSubGraphe().getNumerotation().getElement(niveauFanauxInf.getGraph().getNumerotation().getNumber(f));
             activerConnectionsChaineTournois(f_sous, h);
         }
     }
@@ -1500,7 +1483,7 @@ public class TriangularDecoder extends Decoder {
         LinkedList<Fanal> lstWinner = new LinkedList<>();
         TriangularLevel n = (TriangularLevel) r.getLevelsList().get(h);
         LinkedList<Fanal>[] vectorScores;
-        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS];
+        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.FANALS_PER_CLUSTER * r.NOMBRE_CLUSTERS];
         for (int i = 0; i < vectorScores.length; i++) {
             vectorScores[i] = new LinkedList<>();
         }
@@ -1548,7 +1531,7 @@ public class TriangularDecoder extends Decoder {
         LinkedList<Fanal> lstWinner = new LinkedList<>();
         TriangularLevel n = (TriangularLevel) r.getLevelsList().get(h);
         LinkedList<Fanal>[] vectorScores;
-        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS];
+        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.FANALS_PER_CLUSTER * r.NOMBRE_CLUSTERS];
         for (int i = 0; i < vectorScores.length; i++) {
             vectorScores[i] = new LinkedList<>();
         }
@@ -1590,7 +1573,7 @@ public class TriangularDecoder extends Decoder {
     public LinkedList<Fanal> loserKickOut(LinkedList<Fanal> lst_orig, int h) {
         LinkedList<Fanal> lst = new LinkedList<>();
         TriangularLevel n = (TriangularLevel) r.getLevelsList().get(h);
-        int minScore = r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS;
+        int minScore = r.FANALS_PER_CLUSTER * r.NOMBRE_CLUSTERS;
         int maxScore = -1;
         for (Fanal f : lst_orig) {
             if (f.getScore() < minScore) {
@@ -1633,7 +1616,7 @@ public class TriangularDecoder extends Decoder {
         LinkedList<Fanal> lstWinner = new LinkedList<>();
         TriangularLevel n = (TriangularLevel) r.getLevelsList().get(h);
         LinkedList<Fanal>[] vectorScores;
-        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS * 50];
+        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.FANALS_PER_CLUSTER * r.NOMBRE_CLUSTERS * 50];
         for (int i = 0; i < vectorScores.length; i++) {
             vectorScores[i] = new LinkedList<>();
         }
@@ -1676,7 +1659,7 @@ public class TriangularDecoder extends Decoder {
 
         LinkedList<Fanal> lstWinner = new LinkedList<>();
         LinkedList<Fanal>[] vectorScores;
-        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_CLUSTERS];
+        vectorScores = (LinkedList<Fanal>[]) new LinkedList<?>[r.FANALS_PER_CLUSTER * r.NOMBRE_CLUSTERS];
         for (int i = 0; i < vectorScores.length; i++) {
             vectorScores[i] = new LinkedList<>();
         }

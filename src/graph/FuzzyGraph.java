@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 import model.Cluster;
 import model.Fanal;
-import model.FanalFlous;
+import model.FuzzyFanal;
 import model.MacroFanal;
 import tools.CircularLinkedList;
 
@@ -18,7 +18,7 @@ public class FuzzyGraph extends Graph {
     private ArrayList<ArrayList<Edge>> L;
     private LinkedList<Cluster> clusters;
     private LinkedList<MacroFanal> macroFanalsList;
-    private LinkedList<FanalFlous> fanals;
+    private LinkedList<FuzzyFanal> fanals;
 
     private Numerotation numerotation;
     private int counterEdges;
@@ -56,7 +56,7 @@ public class FuzzyGraph extends Graph {
 
         if (FuzzyNetwork.FLOU2FLOU) {
             MacroFanal mfOrig, mfCopie;
-            FanalFlous fCopie;
+            FuzzyFanal fCopie;
 
             // Ajoute les n macrofanaux dans le graphe
             for (int i = 0; i < n; i++) {
@@ -68,7 +68,7 @@ public class FuzzyGraph extends Graph {
                 // macrofanal copié, à ajouter dans le nouveau graphe
                 mfCopie = new MacroFanal(mfOrig, 0);
                 // Supprime les références contenues dans le nouveau macrofanal (ce sont les références vers les fanaux de l'ancien macrofanal)
-                mfCopie.setListFanaux(new LinkedList<FanalFlous>());
+                mfCopie.setListFanaux(new LinkedList<FuzzyFanal>());
                 mfCopie.setLettre(mfOrig.getLetter());
 
                 // Ajoute le macrofanal dans le graphe
@@ -80,9 +80,9 @@ public class FuzzyGraph extends Graph {
                 cCopie.linkMacroFanalLetter(mfCopie, mfCopie.getLetter());
 
                 // Copie des fanaux contenus dans le macrofanal
-                for (FanalFlous fOrig : mfOrig.getListFanaux()) {
+                for (FuzzyFanal fOrig : mfOrig.getListFanaux()) {
                     // Copie le fanal contenu dans le macrofanal  
-                    fCopie = new FanalFlous(fOrig, 0);
+                    fCopie = new FuzzyFanal(fOrig, 0);
                     // Ajoute le fanal copie dans le macrofanal copie
                     mfCopie.addFanal(fCopie);
                     // Ajoute le fanal copie dans le bon cluster
@@ -94,8 +94,8 @@ public class FuzzyGraph extends Graph {
                 }
             }
         } else {
-            FanalFlous fOrig;
-            FanalFlous fCopie;
+            FuzzyFanal fOrig;
+            FuzzyFanal fCopie;
             for (int i = 0; i < n; i++) {
                 // Récupère le fanal original
                 fOrig = this.fanals.get(i);
@@ -103,7 +103,7 @@ public class FuzzyGraph extends Graph {
                 cCopie = G.getCluster(this.clusters.indexOf(fOrig.getCluster()));
 
                 // Copie le sommet
-                fCopie = new FanalFlous(fOrig, 0);
+                fCopie = new FuzzyFanal(fOrig, 0);
                 fCopie.setFanalName("h:" + h + "," + fCopie.getFanalName());
                 // Ajouter le sommet dans le cluster
                 cCopie.addFanal(fCopie);
@@ -135,13 +135,13 @@ public class FuzzyGraph extends Graph {
     @Override
     public void addNode(Fanal s) {
         // Ajoute le sommet dans la liste de numerotation et dans la liste du graphe
-        if (!this.fanals.contains(((FanalFlous) s))) {
-            ((FanalFlous) s).setId(fanals.size());
-            this.fanals.add(((FanalFlous) s));
+        if (!this.fanals.contains(((FuzzyFanal) s))) {
+            ((FuzzyFanal) s).setId(fanals.size());
+            this.fanals.add(((FuzzyFanal) s));
     		// TODO supprimer la partie commentée si dessous si fonctionnel
 
             //if(Reseau.FLOU2FLOU){ // en Flou de flou, les arcs relient les fanaux contenus dans les macrofanaux 
-            this.L.add(((FanalFlous) s).getId(), new ArrayList<Edge>());
+            this.L.add(((FuzzyFanal) s).getId(), new ArrayList<Edge>());
             //}
         }
     }
@@ -156,7 +156,7 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public boolean existsEdge(Fanal s, Fanal t) {
-        for (Edge a : L.get(((FanalFlous) s).getId())) {
+        for (Edge a : L.get(((FuzzyFanal) s).getId())) {
             if ((a.getDestinationFanal()).equals(t)) {
                 return true;
             }
@@ -166,7 +166,7 @@ public class FuzzyGraph extends Graph {
     }
 
     public boolean existsEdge(int i, int j) {
-        FanalFlous t = this.fanals.get(j);
+        FuzzyFanal t = this.fanals.get(j);
         for (Edge a : L.get(i)) {
             if (a.getDestinationFanal().equals(t)) {
                 return true;
@@ -177,7 +177,7 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public void addEdge(Fanal s, Fanal t, int val, boolean oriente) {
-        int si = ((FanalFlous) s).getId();
+        int si = ((FuzzyFanal) s).getId();
         L.get(si).add(new Edge(s, t, val, oriente));
         counterEdges++;
 
@@ -191,7 +191,7 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public int getEdgeValue(Fanal s, Fanal t) {
-        for (Edge a : L.get(((FanalFlous) s).getId())) {
+        for (Edge a : L.get(((FuzzyFanal) s).getId())) {
             if (a.getDestinationFanal().equals(t)) {
                 return a.getValue();
             }
@@ -266,8 +266,8 @@ public class FuzzyGraph extends Graph {
         return result;
     }
 
-    public ArrayList<FanalFlous> getFanauxGrandDegE(int degMax) {
-        ArrayList<FanalFlous> resultat = new ArrayList<>();
+    public ArrayList<FuzzyFanal> getFanauxGrandDegE(int degMax) {
+        ArrayList<FuzzyFanal> resultat = new ArrayList<>();
         int deg;
         LinkedList<Integer> degs = new LinkedList<>();
         // Initialisation du degré de chaque fanaux
@@ -311,7 +311,7 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public Edge getEdge(Fanal s, Fanal t) {
-        for (Edge a : L.get(((FanalFlous) s).getId())) {
+        for (Edge a : L.get(((FuzzyFanal) s).getId())) {
             if (a.getDestinationFanal().equals(t)) {
                 return a;
             }
@@ -321,13 +321,13 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public Edge[] getEdgesList(Fanal s) {
-        ArrayList<Edge> lst = L.get(((FanalFlous) s).getId());
+        ArrayList<Edge> lst = L.get(((FuzzyFanal) s).getId());
 
         return (Edge[]) lst.toArray(new Edge[lst.size()]);
     }
 
     public int edgeValue(int i, int j) {
-        FanalFlous t = this.fanals.get(j);
+        FuzzyFanal t = this.fanals.get(j);
         for (Edge a : L.get(i)) {
             if (a.getDestinationFanal().equals(t)) {
                 return a.getValue();
@@ -338,20 +338,20 @@ public class FuzzyGraph extends Graph {
 
     @Override
     public void removeEdge(Fanal s, Fanal t) {
-        int si = ((FanalFlous) s).getId();
+        int si = ((FuzzyFanal) s).getId();
         Edge a = null;
-        for (Edge atemp : L.get(((FanalFlous) s).getId())) {
+        for (Edge atemp : L.get(((FuzzyFanal) s).getId())) {
             if (atemp.getDestinationFanal().equals(t)) {
                 a = atemp;
                 break;
             }
         }
         if (a != null) {
-            L.get(((FanalFlous) s).getId()).remove(a);
+            L.get(((FuzzyFanal) s).getId()).remove(a);
         }
     }
 
-    public void modifierValeur(FanalFlous s, FanalFlous t, int val) {
+    public void modifierValeur(FuzzyFanal s, FuzzyFanal t, int val) {
         for (Edge a : L.get(s.getId())) {
             if (a.getDestinationFanal().equals(t)) {
                 a.setValue(val);
@@ -361,14 +361,14 @@ public class FuzzyGraph extends Graph {
 
     }
 
-    public ArrayList<Edge> neighboors(FanalFlous s) {
+    public ArrayList<Edge> neighboors(FuzzyFanal s) {
         return L.get(s.getId());
     }
 
     @Override
     public Collection<Fanal> getAllNodes() {
         LinkedList<Fanal> result = new LinkedList<Fanal>();
-        for (FanalFlous fFlous : this.fanals) {
+        for (FuzzyFanal fFlous : this.fanals) {
             result.add((Fanal) fFlous);
         }
         return result;
@@ -415,7 +415,7 @@ public class FuzzyGraph extends Graph {
         return clusters;
     }
 
-    public LinkedList<FanalFlous> getFanalsList() {
+    public LinkedList<FuzzyFanal> getFanalsList() {
         return fanals;
     }
 }

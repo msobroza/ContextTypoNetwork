@@ -50,11 +50,11 @@ public class TriangularLevel extends Level {
         List<Integer> list_clust_right = new LinkedList<>();
         List<Integer> list_clust_left = new LinkedList<>();
 
-        for (int i = 0; i <= this.graph.getNumerotation().getCompteurClusters(); i++) {
+        for (int i = 0; i <= this.graph.getNumerotation().getClustersCounter(); i++) {
             // On prend les clusters non complets si la non-superposition en h0 est activee
-            if (this.h != 0 || !r.SANS_SUPERPOSITON_H0 || !(this.graph.getNumerotation().isClusterUsed(i))) {
+            if (this.h != 0 || !r.WITHOUT_SUPERPOSITON_H0 || !(this.graph.getNumerotation().isClusterUsed(i))) {
                 // Meiose etape 1 : separation des clusters du niveau courant en 2 sous-parties egales
-                if (r.MEIOSE && this.h != 0) {
+                if (r.MEIOSIS && this.h != 0) {
                     if (this.getSideCluster(i) == TriangularDecoder.LEFT) {
                         list_clust_left.add(i);
                     } else {
@@ -67,7 +67,7 @@ public class TriangularLevel extends Level {
             }
         }
         // Meiose etape 2+3+4: on choisit numFanaux/2 fanaux des clusters de gauche et numFanaux/2 fanaux des cluster de droite pour composer une nouvelle clique
-        if (r.MEIOSE && this.h != 0) {
+        if (r.MEIOSIS && this.h != 0) {
             if (r.WINNER_PARTITIONS) {
                 List<Integer> copy_list = list_clust_left;
                 list_clust_left = new LinkedList<>();
@@ -87,16 +87,16 @@ public class TriangularLevel extends Level {
             }
             // Ajout des fanaux gauches et fanaux droits dans la meme liste, g�n�rant plus qu'une seule clique.
             for (int i = 0; i < numFanaux / 2; i++) {
-                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust_left.get(i)), this.h, r.SANS_SUPERPOSITON_H0));
+                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust_left.get(i)), this.h, r.WITHOUT_SUPERPOSITON_H0));
             }
             for (int i = 0; i < numFanaux / 2; i++) {
-                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust_right.get(i)), this.h, r.SANS_SUPERPOSITON_H0));
+                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust_right.get(i)), this.h, r.WITHOUT_SUPERPOSITON_H0));
             }
 
         } else {
             list_clust = pickRandomNumbers(list_clust, numFanaux);
             for (int i = 0; i < numFanaux; i++) {
-                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust.get(i)), this.h, r.SANS_SUPERPOSITON_H0 && !r.INTERFACE));
+                list_fanaux.add(pickRandomFanal(this.graph.getNumerotation().getListeClusters().get(list_clust.get(i)), this.h, r.WITHOUT_SUPERPOSITON_H0 && !r.INTERFACE));
             }
         }
         if (infoLength > 1 && this.r.getLevelsList().get(seqLeftLength - 1).existsClique(seqLeft) && this.r.getLevelsList().get(seqRightLength - 1).existsClique(seqRight)) {
@@ -106,16 +106,16 @@ public class TriangularLevel extends Level {
 
             // Si la sous échantillonnage entre le premiere et le deuxieme niveau est habilitée
             // On va prendre taux_echant*nombre_de_fanaux pour lier au niveau superieur
-            if (info.length() == 2 && r.SOUS_ECHANT_H0) {
-                liste_left = pickRandomFanals(l_clique.getFanalsList(), (int) Math.round(r.TAUX_ECHANT_H0 * r.NOMBRE_FANAUX_PAR_CLIQUE_H0));
-                liste_right = pickRandomFanals(r_clique.getFanalsList(), (int) Math.round(r.TAUX_ECHANT_H0 * r.NOMBRE_FANAUX_PAR_CLIQUE_H0));
+            if (info.length() == 2 && r.SUBSAMPLING_H0) {
+                liste_left = pickRandomFanals(l_clique.getFanalsList(), (int) Math.round(r.SUBSIMPLING_RATE_H0 * r.FANALS_PER_CLIQUE_H0));
+                liste_right = pickRandomFanals(r_clique.getFanalsList(), (int) Math.round(r.SUBSIMPLING_RATE_H0 * r.FANALS_PER_CLIQUE_H0));
             } else {
                 liste_left = l_clique.getFanalsList();
                 liste_right = r_clique.getFanalsList();
             }
 
             // Si ce n'est pas habilitée la méiose il va créer la liaison avec la liste de fanaux
-            if (!r.MEIOSE) {
+            if (!r.MEIOSIS) {
                 for (Fanal f : list_fanaux) {
                     // Il creer la liaison inter-niveau
                     for (Fanal f_l : liste_left) {
@@ -131,7 +131,7 @@ public class TriangularLevel extends Level {
                     for (Fanal f_l : liste_left) {
                         createLinkBetweenLevels(f_l, f_sup_left);
                     }
-                    if (r.MEIOSE_LIAISON_UNI) {
+                    if (r.MEIOSIS_LINK_UNIDIREC) {
                         for (Fanal f_r : liste_right) {
                             creerLiaisonInterNiveauxUnidirectionnel(f_r, f_sup_left);
                         }
@@ -144,7 +144,7 @@ public class TriangularLevel extends Level {
                     for (Fanal f_r : liste_right) {
                         createLinkBetweenLevels(f_r, f_sup_right);
                     }
-                    if (r.MEIOSE_LIAISON_UNI) {
+                    if (r.MEIOSIS_LINK_UNIDIREC) {
                         for (Fanal f_l : liste_left) {
                             creerLiaisonInterNiveauxUnidirectionnel(f_l, f_sup_right);
                         }
@@ -157,7 +157,7 @@ public class TriangularLevel extends Level {
         for (Fanal f : list_fanaux) {
             ContextTypoNetwork.logger.debug(f.getFanalName());
             // On utilise pour savoir quels sont les fanaux utilisés
-            this.graph.getNumerotation().utiliserFanal(f);
+            this.graph.getNumerotation().useFanal(f);
             c.addFanal(f);
         }
         createClique(list_fanaux);
@@ -216,8 +216,8 @@ public class TriangularLevel extends Level {
         for (int i = 0; i < unite.size(); i++) {
             c_hyperInf.addLast(this.r.getLevelsList().get(0).mapCliquesStr.get(unite.get(i)));
         }
-        int diff = r.HYPER_LIAISON_NOMBRE_NIVEAUX;
-        if (unite.size() <= r.HYPER_LIAISON_NOMBRE_NIVEAUX) {
+        int diff = r.HYPER_LINK_LEVELS;
+        if (unite.size() <= r.HYPER_LINK_LEVELS) {
             diff = unite.size() - 1;
         }
         // Creer la liaison au niveau de sous-mots
@@ -231,7 +231,7 @@ public class TriangularLevel extends Level {
                 }
                 Clique c_inf = this.r.getLevelsList().get(delta).mapCliquesStr.get(s);
                 c_hyperInf.addLast(c_inf);
-                if (r.RECOUVREMENT_HYPER_LIAISON && delta > 1) {
+                if (r.DISTANCE_HYPER_LINK && delta > 1) {
                     // Recouvrement
                     for (int j = 0; j < sSeq.size(); j++) {
                         String lt = sSeq.get(j);
@@ -358,7 +358,7 @@ public class TriangularLevel extends Level {
     }
 
     public double getHorizontaleDensity() {
-        return ((double) this.getGraph().getEdgesCounter()) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_FANAUX_PAR_CLUSTER);
+        return ((double) this.getGraph().getEdgesCounter()) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.FANALS_PER_CLUSTER * r.FANALS_PER_CLUSTER);
     }
 
     public double getVerticalDensity() {
@@ -366,7 +366,7 @@ public class TriangularLevel extends Level {
         for (Fanal f : this.getGraph().getNumerotation().getElements()) {
             compteurArcsVertical += f.getSuperiorFanals().size();
         }
-        return ((double) compteurArcsVertical) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_FANAUX_PAR_CLUSTER);
+        return ((double) compteurArcsVertical) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.FANALS_PER_CLUSTER * r.FANALS_PER_CLUSTER);
     }
 
     public double getInferiorLevelDensity() {
@@ -374,7 +374,7 @@ public class TriangularLevel extends Level {
         for (Fanal f : this.getGraph().getNumerotation().getElements()) {
             compteurArcsInfHyper += f.getInferiorHyperFanals().size();
         }
-        return ((double) compteurArcsInfHyper) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.NOMBRE_FANAUX_PAR_CLUSTER * r.NOMBRE_FANAUX_PAR_CLUSTER);
+        return ((double) compteurArcsInfHyper) / (r.NOMBRE_CLUSTERS * (r.NOMBRE_CLUSTERS - 1) * r.FANALS_PER_CLUSTER * r.FANALS_PER_CLUSTER);
     }
 
 }
