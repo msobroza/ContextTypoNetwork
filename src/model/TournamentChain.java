@@ -6,33 +6,33 @@ public class TournamentChain {
 
     //Liaison inter-couches
 
-    private LinkedList<Fanal> listeFanauxA;
-    private LinkedList<Fanal> listeFanauxB;
+    private final LinkedList<Fanal> fanalsListA;
+    private final LinkedList<Fanal> fanalsListB;
 
     public TournamentChain() {
-        this.listeFanauxA = new LinkedList<>();
-        this.listeFanauxB = new LinkedList<>();
+        this.fanalsListA = new LinkedList<>();
+        this.fanalsListB = new LinkedList<>();
     }
 
     public TournamentChain(LinkedList<Fanal> listeFanauxA, LinkedList<Fanal> listeFanauxB) {
-        this.listeFanauxA = listeFanauxA;
-        this.listeFanauxB = listeFanauxB;
+        this.fanalsListA = listeFanauxA;
+        this.fanalsListB = listeFanauxB;
     }
 
-    public void ajouterFanalA(Fanal fA) {
-        if (!existeFanalA(fA)) {
-            this.listeFanauxA.addLast(fA);
+    public void addFanalA(Fanal fA) {
+        if (!existsFanalA(fA)) {
+            this.fanalsListA.addLast(fA);
         }
     }
 
-    public void ajouterFanalB(Fanal fB) {
-        if (!existeFanalB(fB)) {
-            this.listeFanauxB.addLast(fB);
+    public void addFanalB(Fanal fB) {
+        if (!existsFanalB(fB)) {
+            this.fanalsListB.addLast(fB);
         }
     }
 
-    public boolean existeFanalA(Fanal fA) {
-        for (Fanal f : listeFanauxA) {
+    public boolean existsFanalA(Fanal fA) {
+        for (Fanal f : fanalsListA) {
             if (f.equals(fA)) {
                 return true;
             }
@@ -40,8 +40,8 @@ public class TournamentChain {
         return false;
     }
 
-    public boolean existeFanalB(Fanal fB) {
-        for (Fanal f : listeFanauxB) {
+    public boolean existsFanalB(Fanal fB) {
+        for (Fanal f : fanalsListB) {
             if (f.equals(fB)) {
                 return true;
             }
@@ -49,11 +49,11 @@ public class TournamentChain {
         return false;
     }
 
-    public LinkedList<Fanal> getListeA() {
-        return listeFanauxA;
+    public LinkedList<Fanal> getListA() {
+        return fanalsListA;
     }
 
-    public LinkedList<Fanal> getListeB() {
-        return listeFanauxA;
+    public LinkedList<Fanal> getListB() {
+        return fanalsListA;
     }
 }

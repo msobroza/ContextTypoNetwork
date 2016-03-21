@@ -16,7 +16,7 @@ public class MacroFanal extends FanalFlous {
         listFanaux = new LinkedList<>();
     }
 
-    public boolean ajouterFanal(FanalFlous f) {
+    public boolean addFanal(FanalFlous f) {
         if (!listFanaux.contains(f)) {
             listFanaux.add(f);
             f.setMacroFanal(this);

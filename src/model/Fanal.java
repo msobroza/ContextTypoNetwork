@@ -4,80 +4,80 @@ import java.util.LinkedList;
 
 public class Fanal {
 
-    private String nom;
+    private String name;
     private int score;
     // Liaison inter les niveaux
-    private LinkedList<Fanal> fanauxSup;
-    private LinkedList<Fanal> fanauxInf;
-    private LinkedList<Fanal> fanauxHyperSup;
-    private LinkedList<Fanal> fanauxHyperInf;
+    private LinkedList<Fanal> superiorFanals;
+    private LinkedList<Fanal> inferiorFanals;
+    private LinkedList<Fanal> hyperSuperiorFanals;
+    private LinkedList<Fanal> hyperInferiorFanals;
     private boolean used;
-    private int degEntrant;
-    private int degSortant;
+    private int inDegree;
+    private int outDegree;
 
     public Fanal(String nom, int score) {
-        this.nom = nom;
+        this.name = nom;
         this.score = score;
-        fanauxSup = new LinkedList<>();
-        fanauxInf = new LinkedList<>();
-        fanauxHyperSup = new LinkedList<>();
-        fanauxHyperInf = new LinkedList<>();
+        superiorFanals = new LinkedList<>();
+        inferiorFanals = new LinkedList<>();
+        hyperSuperiorFanals = new LinkedList<>();
+        hyperInferiorFanals = new LinkedList<>();
         used = false;
-        this.degEntrant = 0;
-        this.degSortant = 0;
+        this.inDegree = 0;
+        this.outDegree = 0;
     }
 
     public Fanal(Fanal f, int score) {
 
-        this.nom = f.getNom();
+        this.name = f.getFanalName();
         this.score = f.getScore();
-        fanauxSup = new LinkedList<>();
-        fanauxInf = new LinkedList<>();
-        fanauxHyperSup = new LinkedList<>();
-        fanauxHyperInf = new LinkedList<>();
+        superiorFanals = new LinkedList<>();
+        inferiorFanals = new LinkedList<>();
+        hyperSuperiorFanals = new LinkedList<>();
+        hyperInferiorFanals = new LinkedList<>();
         used = false;
-        this.degEntrant = 0;
-        this.degSortant = 0;
+        this.inDegree = 0;
+        this.outDegree = 0;
     }
 
-    public void setFanalSup(Fanal fanalSup) {
-        this.fanauxSup.add(fanalSup);
+    public void setSuperiorFanals(Fanal fanalSup) {
+        this.superiorFanals.add(fanalSup);
     }
 
-    public void setFanalInf(Fanal fanalInf) {
-        this.fanauxInf.add(fanalInf);
+    public void setInferiorFanals(Fanal fanalInf) {
+        this.inferiorFanals.add(fanalInf);
     }
 
-    public void setFanalHyperSup(Fanal fanalHyperSup) {
-        this.fanauxHyperSup.add(fanalHyperSup);
+    public void setHyperSuperiorFanals(Fanal fanalHyperSup) {
+        this.hyperSuperiorFanals.add(fanalHyperSup);
     }
 
-    public void setFanalHyperInf(Fanal fanalHyperInf) {
-        this.fanauxHyperInf.add(fanalHyperInf);
+    public void setHyperInferiorFanals(Fanal fanalHyperInf) {
+        this.hyperInferiorFanals.add(fanalHyperInf);
     }
 
-    public LinkedList<Fanal> getFanauxSup() {
-        return this.fanauxSup;
+    public LinkedList<Fanal> getSuperiorFanals() {
+        return this.superiorFanals;
     }
 
-    public LinkedList<Fanal> getFanauxInf() {
-        return this.fanauxInf;
+    public LinkedList<Fanal> getInferiorFanals() {
+        return this.inferiorFanals;
     }
 
     public LinkedList<Fanal> getSuperiorHyperFanals() {
-        return this.fanauxHyperSup;
+        return this.hyperSuperiorFanals;
     }
 
     public LinkedList<Fanal> getInferiorHyperFanals() {
-        return this.fanauxHyperInf;
+        return this.hyperInferiorFanals;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setFanalName(String nom) {
+        this.name = nom;
     }
 
-    public String getNom() {
-        return this.nom;
+    public String getFanalName() {
+        return this.name;
     }
 
     public int getScore() {
@@ -90,28 +90,28 @@ public class Fanal {
 
     @Override
     public String toString() {
-        return "" + this.nom;
+        return "" + this.name;
     }
 
     //Verifie se les sommets ont le même nom
 
     @Override
     public boolean equals(Object o) {
-        return nom.equals(((Fanal) o).getNom());
+        return name.equals(((Fanal) o).getFanalName());
     }
 
     //Verifie lequel des valeurs est plus grandes
 
     public int compareTo(Object o) {
         Fanal s = (Fanal) o;
-        return this.nom.compareTo(s.getNom());
+        return this.name.compareTo(s.getFanalName());
     }
 
     //Renvoie le hashCode du nom
 
     @Override
     public int hashCode() {
-        return nom.hashCode();
+        return name.hashCode();
     }
 
     public boolean isUsed() {
@@ -122,20 +122,20 @@ public class Fanal {
         this.used = used;
     }
     
-     public int getDegEntrant() {
-        return this.degEntrant;
+     public int getInDegree() {
+        return this.inDegree;
     }
 
-    public void incDegEntrant() {
-        this.degEntrant++;
+    public void increaseInDegree() {
+        this.inDegree++;
     }
 
-    public int getDegSortant() {
-        return this.degSortant;
+    public int getOutDegree() {
+        return this.outDegree;
     }
 
-    public void incDegSortant() {
-        this.degSortant++;
+    public void increaseOutDegree() {
+        this.outDegree++;
     }
 
 }

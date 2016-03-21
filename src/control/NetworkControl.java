@@ -89,7 +89,6 @@ public class NetworkControl implements LetterInformation {
             modifiedWord = errorWordList.get(jSamples);
             ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
             String phonLia = errorPhonList.get(jSamples);
-            ContextTypoNetwork.logger.debug("Phoneme entree: " + phonLia);
             // Il convertit les règles du format Lia pour le format du lexique ou du LIA selon apprentissage
 
             phonemesList = PhonemeRules.phonemeToListParser(phonLia);
@@ -157,7 +156,7 @@ public class NetworkControl implements LetterInformation {
 
             // Apprentissage des mots dans le reseau flous
             fuzzyNetworkRight.learnWord("<" + wordAux + ">");
-            if (FuzzyNetwork.MITOSE_FANAUX) {
+            if (FuzzyNetwork.USE_MITOSIS) {
                 // Réalisation de la mitose si besoin
                 fuzzyNetworkRight.mitosis();
             }

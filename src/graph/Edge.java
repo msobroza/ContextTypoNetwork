@@ -5,34 +5,34 @@ import model.Fanal;
 
 public class Edge {
     
-    private Fanal orig;
-    private Fanal dest;
-    private int valeur;
+    private Fanal sourceFanal;
+    private Fanal destinationFanal;
+    private int value;
     private boolean active;
-    private boolean oriente;
+    private boolean oriented;
     
     // Méthode constructeur de l'Arc
     public Edge(Fanal orig, Fanal dest, int valeur, boolean oriente){
-        this.orig=orig;
-        this.dest=dest;
-        this.valeur=valeur;
-        this.oriente=oriente;
+        this.sourceFanal=orig;
+        this.destinationFanal=dest;
+        this.value=valeur;
+        this.oriented=oriente;
         
         // Incrémente le degré sortant du fanal d'origine et le degré entrant du fanal destinataire
-        orig.incDegSortant();
-        dest.incDegEntrant();
+        orig.increaseOutDegree();
+        dest.increaseInDegree();
     }
     // Ce méthode va dupliquer l'arc selon ses attributs
     public Edge(Edge arc){
-        this.orig=arc.getOrig();
-        this.dest=arc.getDest();
-        this.oriente=arc.oriente;
+        this.sourceFanal=arc.getSourceFanal();
+        this.destinationFanal=arc.getDestinationFanal();
+        this.oriented=arc.oriented;
     }
-    public boolean isOriente(){
-        return this.oriente;
+    public boolean isOriented(){
+        return this.oriented;
     }
-    public void setOriente(boolean oriente){
-        this.oriente=oriente;
+    public void setOriented(boolean oriente){
+        this.oriented=oriente;
     }
     public boolean isActive(){
         return this.active;
@@ -40,34 +40,34 @@ public class Edge {
     public void setActive(boolean active){
         this.active=active;
     }
-    public Fanal getOrig(){
-        return orig;
+    public Fanal getSourceFanal(){
+        return sourceFanal;
     }
-    public Fanal getDest(){
-        return dest;
+    public Fanal getDestinationFanal(){
+        return destinationFanal;
     }
-    public int getValeur(){
-        return valeur;
+    public int getValue(){
+        return value;
     }
-    public void setOrig(Fanal orig){
-        this.orig=orig;
+    public void setSourceFanal(Fanal orig){
+        this.sourceFanal=orig;
     }
-    public void setDest(Fanal dest){
-        this.dest=dest;
+    public void setDestinationFanal(Fanal dest){
+        this.destinationFanal=dest;
     }
-    public void setValeur(int valeur){
-        this.valeur=valeur;
+    public void setValue(int valeur){
+        this.value=valeur;
     }
     @Override
     public boolean equals(Object o){
         Edge arc=(Edge)o;
-        return this.orig.equals(arc.getOrig())&& 
-                this.dest.equals(arc.getDest())&& this.valeur==arc.getValeur();
+        return this.sourceFanal.equals(arc.getSourceFanal())&& 
+                this.destinationFanal.equals(arc.getDestinationFanal())&& this.value==arc.getValue();
     }
     
     @Override
     public String toString(){
-        return "("+this.orig+"||||"+this.dest+")";
+        return "("+this.sourceFanal+"||||"+this.destinationFanal+")";
     }
     @Override
     public int hashCode(){

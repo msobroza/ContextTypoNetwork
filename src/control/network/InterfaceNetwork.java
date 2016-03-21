@@ -203,7 +203,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
             remiseZeroPropagationLaterale();
         }
 
-        return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceReseaux(inferiorFanalsList);
+        return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceNetwork(inferiorFanalsList);
     }
 
     private void activateLateralConnections(LinkedList<Fanal> activatedFanals, int directionActivation) {
@@ -214,7 +214,6 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
     }
 
     private void activateLateralConnections(Fanal fanalActive, int directionActivation) {
-        MacroFanal fmacro;
         // Convention: HyperSup est a droite et HyperInf est a gauche 
         if (directionActivation == ACTIVATION_TO_LEFT_SIDE) {
             for (Fanal f : fanalActive.getInferiorHyperFanals()) {

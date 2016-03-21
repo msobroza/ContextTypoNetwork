@@ -5,76 +5,76 @@ import java.util.LinkedList;
 
 public class Cluster {
 
-    private String nom;
+    private String name;
     // Liste des fanaux du cluster
-    private LinkedList<FanalFlous> fanaux;
-    private LinkedList<MacroFanal> macroFanaux;
-    private HashMap<String, FanalFlous> hlf;
-    private HashMap<String, MacroFanal> hlmf;
+    private LinkedList<FanalFlous> fuzzyFanalsList;
+    private LinkedList<MacroFanal> macroFanalsList;
+    private HashMap<String, FanalFlous> mapIndexFuzzyFanal;
+    private HashMap<String, MacroFanal> mapIndexMacroFanal;
     private boolean used;
 
     public Cluster(String nom) {
-        this.nom = nom;
-        this.fanaux = new LinkedList<>();
-        this.macroFanaux = new LinkedList<>();
+        this.name = nom;
+        this.fuzzyFanalsList = new LinkedList<>();
+        this.macroFanalsList = new LinkedList<>();
         // Génération du mapping entre lettre et position du fanal dans le cluster
-        this.hlf = new HashMap<>();
-        this.hlmf = new HashMap<>();
+        this.mapIndexFuzzyFanal = new HashMap<>();
+        this.mapIndexMacroFanal = new HashMap<>();
         used = false;
     }
 
-    public void ajouterFanal(FanalFlous f) {
-        this.fanaux.add(f);
+    public void addFanal(FanalFlous f) {
+        this.fuzzyFanalsList.add(f);
         f.setCluster(this);
     }
 
-    public void ajouterMacroFanal(MacroFanal mf) {
-        this.macroFanaux.add(mf);
+    public void addMacroFanal(MacroFanal mf) {
+        this.macroFanalsList.add(mf);
         mf.setCluster(this);
     }
 
-    public boolean associerFanalLettre(FanalFlous f, String lettre) {
-        if (!hlf.containsKey(lettre)) {
-            hlf.put(lettre, f);
+    public boolean linkFanalLetter(FanalFlous f, String lettre) {
+        if (!mapIndexFuzzyFanal.containsKey(lettre)) {
+            mapIndexFuzzyFanal.put(lettre, f);
             return true;
         }
         return false;
     }
 
-    public boolean associerMacroFanalLettre(MacroFanal f, String lettre) {
-        if (!hlmf.containsKey(lettre)) {
-            hlmf.put(lettre, f);
+    public boolean linkMacroFanalLetter(MacroFanal f, String lettre) {
+        if (!mapIndexMacroFanal.containsKey(lettre)) {
+            mapIndexMacroFanal.put(lettre, f);
             return true;
         }
         return false;
     }
 
-    public String getNom() {
-        return nom;
+    public String getClusterName() {
+        return name;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setClusterName(String nom) {
+        this.name = nom;
     }
 
     public FanalFlous getFanal(int i) {
-        return fanaux.get(i);
+        return fuzzyFanalsList.get(i);
     }
 
     public FanalFlous getFanal(String lettre) {
-        return hlf.get(lettre);
+        return mapIndexFuzzyFanal.get(lettre);
     }
 
     public MacroFanal getMacroFanal(String lettre) {
-        return hlmf.get(lettre);
+        return mapIndexMacroFanal.get(lettre);
     }
 
-    public LinkedList<MacroFanal> getMacroFanaux() {
-        return macroFanaux;
+    public LinkedList<MacroFanal> getMacroFanalsList() {
+        return macroFanalsList;
     }
 
-    public void setMacroFanaux(LinkedList<MacroFanal> macroFanaux) {
-        this.macroFanaux = macroFanaux;
+    public void setMacroFanals(LinkedList<MacroFanal> macroFanaux) {
+        this.macroFanalsList = macroFanaux;
     }
 
     public boolean isUsed() {
@@ -87,16 +87,16 @@ public class Cluster {
 
     @Override
     public String toString() {
-        return "" + this.nom;
+        return "" + this.name;
     }
 
     //Renvoie le hashCode du nom
     @Override
     public int hashCode() {
-        return nom.hashCode();
+        return name.hashCode();
     }
 
-    public LinkedList<FanalFlous> getListeFanaux() {
-        return fanaux;
+    public LinkedList<FanalFlous> getFanalsList() {
+        return fuzzyFanalsList;
     }
 }

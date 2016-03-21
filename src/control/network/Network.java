@@ -52,26 +52,4 @@ public abstract class Network implements LetterInformation {
         }
         return false;
     }
-/*
-    public double getTauxDoubleLettre() {
-        if (ReseauTriang.AVEC_DOUBLE_LETTRES) {
-            return numDoubleLettre / (motsAppris.size());
-        } else {
-            return numDoubleLettre / (motsAppris.size() + numDoubleLettre);
-        }
-
-    }
-
-    public double getTauxDoubleLettreNon() {
-        if (ReseauTriang.AVEC_DOUBLE_LETTRES_NON_CONSEC) {
-            return numDoubleLettreNon / (motsAppris.size());
-        } else {
-            return numDoubleLettreNon / (motsAppris.size() + numDoubleLettreNon);
-        }
-    }
-
-    public LinkedList<String> getDictionnaire() {
-        return motsAppris;
-    } */
-
 }

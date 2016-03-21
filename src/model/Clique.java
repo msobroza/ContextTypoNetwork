@@ -5,15 +5,15 @@ import java.util.LinkedList;
 public class Clique {
 
     private String info;
-    private LinkedList<Fanal> listeFanaux;
+    private LinkedList<Fanal> fanalsList;
 
     public Clique(String info) {
-        this.listeFanaux = new LinkedList<>();
+        this.fanalsList = new LinkedList<>();
         this.info = info;
     }
 
     public LinkedList<Fanal> getFanalsList() {
-        return listeFanaux;
+        return fanalsList;
     }
 
     public String getInfo() {
@@ -24,14 +24,14 @@ public class Clique {
         this.info = info;
     }
 
-    public void ajouterFanal(Fanal f) {
-        if (!existeFanal(f)) {
-            listeFanaux.addLast(f);
+    public void addFanal(Fanal f) {
+        if (!existsFanal(f)) {
+            fanalsList.addLast(f);
         }
     }
 
-    public boolean existeFanal(Fanal f) {
-        for (Fanal ftemp : listeFanaux) {
+    public boolean existsFanal(Fanal f) {
+        for (Fanal ftemp : fanalsList) {
             if (ftemp.equals(f)) {
                 return true;
             }

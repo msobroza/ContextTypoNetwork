@@ -5,31 +5,31 @@ import model.Fanal;
 
 public abstract class Graph {
 
-    public abstract int taille();
+    public abstract int size();
 
-    public abstract Graph copie(int h);
+    public abstract Graph copyGraph(int h);
 
-    public abstract void ajouterSommet(Fanal s);
+    public abstract void addNode(Fanal s);
 
-    public abstract boolean existeArc(Fanal s, Fanal t);
+    public abstract boolean existsEdge(Fanal s, Fanal t);
 
-    public abstract void ajouterArc(Fanal s, Fanal t, int val, boolean oriente);
+    public abstract void addEdge(Fanal s, Fanal t, int val, boolean oriented);
 
-    public abstract int valeurArc(Fanal s, Fanal t);
+    public abstract int getEdgeValue(Fanal s, Fanal t);
 
-    public abstract void enleverArc(Fanal s, Fanal t);
+    public abstract void removeEdge(Fanal s, Fanal t);
 
-    public abstract Edge getArc(Fanal s, Fanal t);
+    public abstract Edge getEdge(Fanal s, Fanal t);
 
-    public abstract Edge[] getListeArc(Fanal s);
+    public abstract Edge[] getEdgesList(Fanal s);
 
-    public abstract Collection<Fanal> sommets();
+    public abstract Collection<Fanal> getAllNodes();
 
     @Override
     public abstract String toString();
 
     public abstract Numerotation getNumerotation();
 
-    public abstract int getCompteurArcs();
+    public abstract int getEdgesCounter();
 
 }

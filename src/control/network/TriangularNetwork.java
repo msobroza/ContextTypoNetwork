@@ -123,14 +123,14 @@ public class TriangularNetwork extends Network {
         //hCounter==hMax-1
         for (int iClust = 0; iClust < NOMBRE_CLUSTERS_SUP; iClust++) {
             //Ajouter cluster
-            cluster = superiorLevel.getGraphe().getNumerotation().ajouterCluster();
+            cluster = superiorLevel.getGraph().getNumerotation().ajouterCluster();
             for (int iFanal = 0; iFanal < NOMBRE_FANAUX_PAR_CLUSTER_SUP; iFanal++) {
                 // Creer un nouveau sommet
                 s = new Fanal("c:" + iClust + ",f:" + iFanal, 0);
                 //Ajouter le sommet dans le graphe
-                this.superiorLevel.getGraphe().ajouterSommet(s);
+                this.superiorLevel.getGraph().addNode(s);
                 // Ajouter le sommet dans le cluster
-                this.superiorLevel.getGraphe().getNumerotation().ajouterSommetCluster(cluster, s);
+                this.superiorLevel.getGraph().getNumerotation().ajouterSommetCluster(cluster, s);
             }
         }
         levelsList.add(hCounter, this.superiorLevel);
@@ -142,14 +142,14 @@ public class TriangularNetwork extends Network {
         int cluster;
         for (int iClust = 0; iClust < NOMBRE_CLUSTERS; iClust++) {
             //Ajouter cluster
-            cluster = niveauStandart.getGraphe().getNumerotation().ajouterCluster();
+            cluster = niveauStandart.getGraph().getNumerotation().ajouterCluster();
             for (int iFanal = 0; iFanal < NOMBRE_FANAUX_PAR_CLUSTER; iFanal++) {
                 // Creer un nouveau sommet
                 s = new Fanal("c:" + iClust + ",f:" + iFanal, 0);
                 //Ajouter le sommet dans le graphe
-                this.niveauStandart.getGraphe().ajouterSommet(s);
+                this.niveauStandart.getGraph().addNode(s);
                 // Ajouter le sommet dans le cluster
-                this.niveauStandart.getGraphe().getNumerotation().ajouterSommetCluster(cluster, s);
+                this.niveauStandart.getGraph().getNumerotation().ajouterSommetCluster(cluster, s);
             }
         }
     }
@@ -159,7 +159,7 @@ public class TriangularNetwork extends Network {
         if (hCounter == hMax) {
             return null;
         }
-        levelsList.add(hCounter, (TriangularLevel) niveauStandart.copie(hCounter));
+        levelsList.add(hCounter, (TriangularLevel) niveauStandart.copy(hCounter));
         return levelsList.get(hCounter);
     }
 
@@ -196,7 +196,7 @@ public class TriangularNetwork extends Network {
     public Clique learnPhoneme(String phon) {
         TriangularLevel n;
         System.out.println("Este eh o phonema: "+phon);
-        List<String> listePhon = PhonemeRules.separePhonemes(phon);
+        List<String> listePhon = PhonemeRules.splitPhoneme(phon);
         if (learnSubword(listePhon, listePhon.size(), true, true)) {
             if (!this.ADDITIONAL_LEVEL) {
                 n = (TriangularLevel) levelsList.get(listePhon.size() - 1);
@@ -288,14 +288,14 @@ public class TriangularNetwork extends Network {
         decodeur.remiseMemo();
 
         if (this.DECODAGE_HYPER_LIAISON_BIGRAMMES) {
-            decodeur.reconnaitreBottomUpHyperDeuxNiveaux(PhonemeRules.phonemesCorrectesToList(PhonemeRules.separePhonemes("<" + phoneme + ">")), phonemeRecherche);
+            decodeur.reccognizeBottomUpHyper2Levels(PhonemeRules.correctesPhonemesToList(PhonemeRules.splitPhoneme("<" + phoneme + ">")), phonemeRecherche);
         } else {
-            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.separePhonemes("<" + phoneme + ">"), TriangularDecoder.LEFT, true, true);
+            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.splitPhoneme("<" + phoneme + ">"), TriangularDecoder.LEFT, true, true);
         }
         if (this.ADDITIONAL_LEVEL) {
             result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", this.hMax - 1);
         } else {
-            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", PhonemeRules.separePhonemes("<" + phoneme + ">").size() - 1);
+            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", PhonemeRules.splitPhoneme("<" + phoneme + ">").size() - 1);
         }
         return result;
     }
@@ -305,7 +305,7 @@ public class TriangularNetwork extends Network {
         decodeur.remiseMemo();
 
         if (this.DECODAGE_HYPER_LIAISON_BIGRAMMES) {
-            decodeur.reconnaitreBottomUpHyperDeuxNiveaux(PhonemeRules.graphemePhonemesToList(PhonemeRules.supprimePhonemesNulls(phon)), phonemeRecherche);
+            decodeur.reccognizeBottomUpHyper2Levels(PhonemeRules.graphemePhonemesToList(PhonemeRules.removeNullPhoneme(phon)), phonemeRecherche);
         } else {
             // decodeur.reconnaitreBottomUp(ReglesPhonemes.separePhonemes("<" + phoneme + ">"), DecodageTriang.LEFT, true, true);
         }

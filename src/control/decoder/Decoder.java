@@ -17,7 +17,7 @@ public abstract class Decoder {
     
 
 
-    public static LinkedList<Fanal> unionEnsemble(LinkedList<Fanal> l_a, LinkedList<Fanal> l_b) {
+    public static LinkedList<Fanal> unionSets(LinkedList<Fanal> l_a, LinkedList<Fanal> l_b) {
         LinkedList<Fanal> l_union = new LinkedList<>();
         for (Fanal f : l_a) {
             l_union.add(f);
@@ -30,7 +30,7 @@ public abstract class Decoder {
         return l_union;
     }
 
-    public static LinkedList<Fanal> jonctionEnsemble(LinkedList<Fanal> l_a, LinkedList<Fanal> l_b) {
+    public static LinkedList<Fanal> joinSets(LinkedList<Fanal> l_a, LinkedList<Fanal> l_b) {
         LinkedList<Fanal> lst = new LinkedList<>();
         for (Fanal f : l_a) {
             lst.add(f);

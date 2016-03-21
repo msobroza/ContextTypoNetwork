@@ -11,7 +11,6 @@ import graph.Edge;
 import graph.Graph;
 import graph.FuzzyGraph;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +19,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import model.Clique;
 import model.Cluster;
@@ -35,7 +33,6 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     protected final int GWsTA_horizontal;
 
     public static final int[] FENETRE_CIRCULAIRE = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    public static final boolean FENETRE_NON_UNIFORME = false;
     public static final boolean BOOSTING_FLOUS = true;
     public static final boolean N_ITERATIONS_AVANT_BOOSTING = true;
     public static final boolean ITERATION_UNIQUE = false;
@@ -106,7 +103,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         for (LinkedList<Fanal> lstClique : seqsPropagBottomUp.get(mot)) {
             i = 0;
             for (Fanal f : lstClique) {
-                if (clique.existeFanal(f)) {
+                if (clique.existsFanal(f)) {
                     i++;
                 }
             }
@@ -132,9 +129,9 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         String mot = "";
         HashMap<Cluster, String> mapCluster = new HashMap<>();
         for (Fanal f : lstFanaux) {
-            mapCluster.put(((MacroFanal) f).getCluster(), ((MacroFanal) f).getLettre());
+            mapCluster.put(((MacroFanal) f).getCluster(), ((MacroFanal) f).getLetter());
         }
-        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraph();
         for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
             mot += mapCluster.get(g.getCluster(i));
         }
@@ -145,7 +142,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     public void recognizePatternBottomUpDecoding(String mot, int taille_fenetre, boolean utilisationPhoneme, int souplesse) {
         String lettre;
         List<String> phonListe = null;
-        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraph();
         LinkedList<MacroFanal> activesReseauDroite = new LinkedList<>();
         // INITIALISATION
         // Initialisation des scores des fanaux
@@ -179,7 +176,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                 phonListe = PhonemeRules.phonemesLIAToList(mot);
                 activesReseauDroite.addAll(filtragePropagationLaterale());
                 for (MacroFanal mf : activesReseauDroite) {
-                    System.out.println(mf + " -> " + mf.getLettre());
+                    System.out.println(mf + " -> " + mf.getLetter());
                 }
                 if (phonListe.size() > r.NUMBER_CLUSTERS) {
                     conditionInsertion = true;
@@ -212,7 +209,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                         int iFenetre = 0;
                         for (int iCluster = -taille_fenetre; iCluster <= taille_fenetre; iCluster++) {
                             MacroFanal mf = g.getCluster(iCluster + iC).getMacroFanal(lettre);
-                            ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLettre());
+                            ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLetter());
                             fanauxActivants.add(mf);
                             if (!scoreFanaux.containsKey(mf)) {
                                 /*if (activesReseauDroite.contains(mf)) {
@@ -243,7 +240,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     int iFenetre = 0;
                     for (int iCluster = -taille_fenetre; iCluster <= taille_fenetre; iCluster++) {
                         MacroFanal mf = g.getCluster(iCluster + i).getMacroFanal(lettre);
-                        ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLettre());
+                        ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLetter());
                         fanauxActivants.add(mf);
                         if (!scoreFanaux.containsKey(mf)) {
 
@@ -289,7 +286,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                         int iFenetre = 0;
                         for (int iCluster = -taille_fenetre; iCluster <= taille_fenetre; iCluster++) {
                             MacroFanal mf = g.getCluster(iCluster + iC).getMacroFanal(lettre);
-                            ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLettre());
+                            ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLetter());
                             fanauxActivants.add(mf);
                             if (!scoreFanaux.containsKey(mf)) {
                                 scoreFanaux.put(mf, FuzzyDecoder.FENETRE_CIRCULAIRE[iFenetre]);
@@ -314,7 +311,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     int iFenetre = 0;
                     for (int iCluster = -taille_fenetre; iCluster <= taille_fenetre; iCluster++) {
                         MacroFanal mf = g.getCluster(iCluster + i).getMacroFanal(lettre);
-                        ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLettre());
+                        ContextTypoNetwork.logger.debug("MF : " + mf + ", Lettre : " + mf.getLetter());
                         fanauxActivants.add(mf);
                         if (!scoreFanaux.containsKey(mf)) {
                             scoreFanaux.put(mf, FuzzyDecoder.FENETRE_CIRCULAIRE[iFenetre]);
@@ -369,190 +366,188 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         for (int i = 0; i < mot.length(); i++) {
             lstFanaux = new LinkedList<>();
             if (FuzzyNetwork.FLOU2FLOU) {
-                for (MacroFanal mFanal : g.getCluster(i).getMacroFanaux()) {
+                for (MacroFanal mFanal : g.getCluster(i).getMacroFanalsList()) {
                     lstFanaux.addAll(mFanal.getListFanaux());
                 }
                 lstFanaux = this.thresholdingFilter(lstFanaux, r.FANALS_PER_CLIQUE - nEffac - souplesse, false);
 
             } else {
-                lstFanaux = this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false);
+                lstFanaux = this.localWinnersTakeAll(g.getCluster(i).getFanalsList(), false);
             }
             lstWinners.addAll(lstFanaux);
         }
         bestScoresBottomUp.set(0, lstWinners);
 
-        if (!FuzzyDecoder.ITERATION_UNIQUE) {
-            // ITERATIONS DE DECODAGE
-            if (FuzzyDecoder.BOOSTING_FLOUS) {
-                if (FuzzyDecoder.N_ITERATIONS_AVANT_BOOSTING) {
-                    nombreFanauxAvant = 0;
-                    nombreFanauxApres = lstWinners.size();
-                    while (nombreFanauxAvant != nombreFanauxApres) {
-                        remiseZero(0);
-                        for (Fanal f : bestScoresBottomUp.get(0)) {
-                            //                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          f.setScore(f.getScore()+GAMA);
-                            activerConnectionsChaineTournois(f, g);
-                        }
-
-                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac - souplesse, false);
-
-                        bestScoresBottomUp.set(0, lstWinners);
-                        nombreFanauxAvant = nombreFanauxApres;
-                        nombreFanauxApres = lstWinners.size();
-                    }
-                }
-                Fanal fanalBoosting;
-                LinkedList<Fanal> lstBoosting = new LinkedList<>(lstWinners);
-                HashSet<Fanal> lst = new HashSet<>();
-                LinkedList<LinkedList<Fanal>> globalWinners;
-                HashMap<Cluster, String> mapCluster = new HashMap<>();
-
-                // Si effacement, on supprime les fanaux issus du cluster associé à la lettre effacée de la liste des fanaux à booster 
-                if (nEffac != 0) {
-                    for (Fanal f : lstWinners) {
-                        for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
-                            if (g.getCluster(i).getMacroFanaux().contains(((FanalFlous) f).getMacroFanal()) && ((FanalFlous) f).getMacroFanal().getLettre().equals(ERASURE_CHAR)) {
-                                lstBoosting.remove(f);
-                            }
-                        }
-                    }
-                }
-                LinkedList<Fanal> lstActives = new LinkedList<>(lstWinners);
-                boolean valCluster = false;
-                boolean valClusterGlobal = false;
-                lstWinners = new LinkedList<>();
-                globalWinners = new LinkedList<>();
-                int nValides = 0;
-                while (nValides < FuzzyDecoder.MAX_BOOSTING && lstBoosting.size() > 0 && (!valClusterGlobal || FuzzyDecoder.PLUSIEURS_BOOSTING)) {
-                    // Réinitialisation de la liste des fanaux gagnants
-                    lstWinners = new LinkedList<>();
-                    // Réinitialisation des scores
+        // ITERATIONS DE DECODAGE
+        if (FuzzyDecoder.BOOSTING_FLOUS) {
+            if (FuzzyDecoder.N_ITERATIONS_AVANT_BOOSTING) {
+                nombreFanauxAvant = 0;
+                nombreFanauxApres = lstWinners.size();
+                while (nombreFanauxAvant != nombreFanauxApres) {
                     remiseZero(0);
-                    // Tirage aléatoire d'un fanal gagnant lors de l'itération précédente pour le boosting
-                    //System.out.println("Taille liste boosting: "+lstBoosting.size());
-                    //System.out.println("Taille fenetre: "+taille_fenetre);
-                    fanalBoosting = FuzzyLevel.tirer1FanalAleat(lstBoosting, 1);
-                    lstBoosting.remove(fanalBoosting);
-                    //System.out.println(lstBoosting.size());
-                    ContextTypoNetwork.logger.debug("Fanal booste: " + fanalBoosting.getNom() + " :" + lstBoosting.size() + " :" + ((FanalFlous) fanalBoosting).getMacroFanal().getLettre());
+                    for (Fanal f : bestScoresBottomUp.get(0)) {
+                        //                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          f.setScore(f.getScore()+GAMA);
+                        activerConnectionsChaineTournois(f, g);
+                    }
 
-                    // Activation des connexions du fanal boosté
-                    activerConnectionsChaineTournois(fanalBoosting, g);
-                    // Filtrage sur les gagnants
-                    lstWinners.addAll(this.localWinnersTakeAll(lstActives, false));
-
-                    nombreFanauxAvant = 0;
-                    nombreFanauxApres = lstWinners.size();
+                    lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac - souplesse, false);
 
                     bestScoresBottomUp.set(0, lstWinners);
-                    while (nombreFanauxAvant != nombreFanauxApres) {
-
-                        remiseZero(0);
-                        for (Fanal f : bestScoresBottomUp.get(0)) {
-                            activerConnectionsChaineTournois(f, g);
-                        }
-
-                        lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac, false);
-
-                        bestScoresBottomUp.set(0, lstWinners);
-                        nombreFanauxAvant = nombreFanauxApres;
-                        nombreFanauxApres = lstWinners.size();
-                    }
-                    nombreFanauxAvant = 0;
+                    nombreFanauxAvant = nombreFanauxApres;
                     nombreFanauxApres = lstWinners.size();
-                    while (nombreFanauxAvant != nombreFanauxApres) {
-                        lstWinners = new LinkedList<>();
-                        remiseZero(0);
-                        for (Fanal f : bestScoresBottomUp.get(0)) {
-                            f.setScore(f.getScore() + GAMA);
-                            activerConnectionsChaineTournois(f, g);
-                        }//System.out.println("Cluster: "+i+" Fanaux: "+lstFanaux.size());
+                }
+            }
+            Fanal fanalBoosting;
+            LinkedList<Fanal> lstBoosting = new LinkedList<>(lstWinners);
+            HashSet<Fanal> lst = new HashSet<>();
+            LinkedList<LinkedList<Fanal>> globalWinners;
+            HashMap<Cluster, String> mapCluster = new HashMap<>();
 
-                        for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
-                            lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false));
+            // Si effacement, on supprime les fanaux issus du cluster associé à la lettre effacée de la liste des fanaux à booster 
+            if (nEffac != 0) {
+                for (Fanal f : lstWinners) {
+                    for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
+                        if (g.getCluster(i).getMacroFanalsList().contains(((FanalFlous) f).getMacroFanal()) && ((FanalFlous) f).getMacroFanal().getLetter().equals(ERASURE_CHAR)) {
+                            lstBoosting.remove(f);
                         }
-                        bestScoresBottomUp.set(0, lstWinners);
-                        ContextTypoNetwork.logger.debug("Nombre de fanaux: " + lstWinners.size());
-                        nombreFanauxAvant = nombreFanauxApres;
-                        nombreFanauxApres = lstWinners.size();
-                    }
-                    //Vérification si tous les clusteurs sont representés
-                    valCluster = valideClusters(lstWinners);
-                    // Il cree un effet mémoire pour valide cluster global
-                    if (valCluster) {
-                        globalWinners.add(lstWinners);
-                        valClusterGlobal = true;
-                        nValides++;
                     }
                 }
-                if (!valClusterGlobal && taille_fenetre < r.NUMBER_CLUSTERS) {
-                    recognizePatternBottomUpDecoding(motOrig, taille_fenetre + 1, utilisationPhoneme, souplesse);
-                    return;
-                } else {
-                    if (!valClusterGlobal && souplesse < FuzzyDecoder.SOUPLESSE_FILTRAGE) {
-                        recognizePatternBottomUpDecoding(motOrig, 0, utilisationPhoneme, souplesse + 1);
-                        return;
-                    } else {
-                        LinkedList<LinkedList<Fanal>> lstResult = null;
-                        if (FuzzyNetwork.FLOU2FLOU) {
-                            lstResult = new LinkedList<>();
-                            this.seqsPropagBottomUpFlous.put(motOrig, globalWinners);
-                            for (int i = 0; i < globalWinners.size(); i++) {
-                                lstWinners = globalWinners.get(i);
-                                // Il garde les fanaux flous gagnants
-                                // Récupération des macrofanaux gagnants à la fin du décodage
-                                lst = new HashSet<>();
-                                mapCluster.clear();
-                                for (Fanal f : lstWinners) {
-                                    lst.add(((FanalFlous) f).getMacroFanal());
+            }
+            LinkedList<Fanal> lstActives = new LinkedList<>(lstWinners);
+            boolean valCluster = false;
+            boolean valClusterGlobal = false;
+            lstWinners = new LinkedList<>();
+            globalWinners = new LinkedList<>();
+            int nValides = 0;
+            while (nValides < FuzzyDecoder.MAX_BOOSTING && lstBoosting.size() > 0 && (!valClusterGlobal || FuzzyDecoder.PLUSIEURS_BOOSTING)) {
+                // Réinitialisation de la liste des fanaux gagnants
+                lstWinners = new LinkedList<>();
+                // Réinitialisation des scores
+                remiseZero(0);
+                    // Tirage aléatoire d'un fanal gagnant lors de l'itération précédente pour le boosting
+                //System.out.println("Taille liste boosting: "+lstBoosting.size());
+                //System.out.println("Taille fenetre: "+taille_fenetre);
+                fanalBoosting = FuzzyLevel.pickRandomFanal(lstBoosting);
+                lstBoosting.remove(fanalBoosting);
+                //System.out.println(lstBoosting.size());
+                ContextTypoNetwork.logger.debug("Fanal booste: " + fanalBoosting.getFanalName() + " :" + lstBoosting.size() + " :" + ((FanalFlous) fanalBoosting).getMacroFanal().getLetter());
 
-                                }
-                                lstWinners = new LinkedList<>();
-                                for (Fanal f : lst) {
-                                    lstWinners.add(f);
-                                    mapCluster.put(((FanalFlous) f).getCluster(), ((FanalFlous) f).getLettre());
-                                }
-                                lstResult.add(lstWinners);
-                                ContextTypoNetwork.logger.debug("Mot trouvee: ");
-                                for (int j = 0; j < r.NUMBER_CLUSTERS; j++) {
-                                    ContextTypoNetwork.logger.debug(mapCluster.get(g.getCluster(j)));
-                                }
-                                ContextTypoNetwork.logger.debug("Nombre de macrofanaux : " + lstWinners.size());
-                            }
+                // Activation des connexions du fanal boosté
+                activerConnectionsChaineTournois(fanalBoosting, g);
+                // Filtrage sur les gagnants
+                lstWinners.addAll(this.localWinnersTakeAll(lstActives, false));
 
-                        } else {
-                            ContextTypoNetwork.logger.debug("Nombre de fanaux : " + lstWinners.size());
-                        }
+                nombreFanauxAvant = 0;
+                nombreFanauxApres = lstWinners.size();
 
-                        seqsPropagBottomUp.put(mot, lstResult);
-                        return;
+                bestScoresBottomUp.set(0, lstWinners);
+                while (nombreFanauxAvant != nombreFanauxApres) {
+
+                    remiseZero(0);
+                    for (Fanal f : bestScoresBottomUp.get(0)) {
+                        activerConnectionsChaineTournois(f, g);
                     }
-                }
 
-            } else {
+                    lstWinners = this.thresholdingFilter(bestScoresBottomUp.get(0), r.FANALS_PER_CLIQUE - nEffac, false);
+
+                    bestScoresBottomUp.set(0, lstWinners);
+                    nombreFanauxAvant = nombreFanauxApres;
+                    nombreFanauxApres = lstWinners.size();
+                }
                 nombreFanauxAvant = 0;
                 nombreFanauxApres = lstWinners.size();
                 while (nombreFanauxAvant != nombreFanauxApres) {
                     lstWinners = new LinkedList<>();
                     remiseZero(0);
                     for (Fanal f : bestScoresBottomUp.get(0)) {
-                        //f.setScore(f.getScore()+GAMA);
+                        f.setScore(f.getScore() + GAMA);
                         activerConnectionsChaineTournois(f, g);
-                    }
+                    }//System.out.println("Cluster: "+i+" Fanaux: "+lstFanaux.size());
 
                     for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
-                        lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getListeFanaux(), false));
+                        lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getFanalsList(), false));
                     }
                     bestScoresBottomUp.set(0, lstWinners);
                     ContextTypoNetwork.logger.debug("Nombre de fanaux: " + lstWinners.size());
                     nombreFanauxAvant = nombreFanauxApres;
                     nombreFanauxApres = lstWinners.size();
                 }
+                //Vérification si tous les clusteurs sont representés
+                valCluster = valideClusters(lstWinners);
+                // Il cree un effet mémoire pour valide cluster global
+                if (valCluster) {
+                    globalWinners.add(lstWinners);
+                    valClusterGlobal = true;
+                    nValides++;
+                }
             }
-            LinkedList<LinkedList<Fanal>> auxListe = new LinkedList<>();
-            auxListe.add(lstFanaux);
-            seqsPropagBottomUp.put(mot, auxListe);
+            if (!valClusterGlobal && taille_fenetre < r.NUMBER_CLUSTERS) {
+                recognizePatternBottomUpDecoding(motOrig, taille_fenetre + 1, utilisationPhoneme, souplesse);
+                return;
+            } else {
+                if (!valClusterGlobal && souplesse < FuzzyDecoder.SOUPLESSE_FILTRAGE) {
+                    recognizePatternBottomUpDecoding(motOrig, 0, utilisationPhoneme, souplesse + 1);
+                    return;
+                } else {
+                    LinkedList<LinkedList<Fanal>> lstResult = null;
+                    if (FuzzyNetwork.FLOU2FLOU) {
+                        lstResult = new LinkedList<>();
+                        this.seqsPropagBottomUpFlous.put(motOrig, globalWinners);
+                        for (int i = 0; i < globalWinners.size(); i++) {
+                            lstWinners = globalWinners.get(i);
+                                // Il garde les fanaux flous gagnants
+                            // Récupération des macrofanaux gagnants à la fin du décodage
+                            lst = new HashSet<>();
+                            mapCluster.clear();
+                            for (Fanal f : lstWinners) {
+                                lst.add(((FanalFlous) f).getMacroFanal());
+
+                            }
+                            lstWinners = new LinkedList<>();
+                            for (Fanal f : lst) {
+                                lstWinners.add(f);
+                                mapCluster.put(((FanalFlous) f).getCluster(), ((FanalFlous) f).getLetter());
+                            }
+                            lstResult.add(lstWinners);
+                            ContextTypoNetwork.logger.debug("Mot trouvee: ");
+                            for (int j = 0; j < r.NUMBER_CLUSTERS; j++) {
+                                ContextTypoNetwork.logger.debug(mapCluster.get(g.getCluster(j)));
+                            }
+                            ContextTypoNetwork.logger.debug("Nombre de macrofanaux : " + lstWinners.size());
+                        }
+
+                    } else {
+                        ContextTypoNetwork.logger.debug("Nombre de fanaux : " + lstWinners.size());
+                    }
+
+                    seqsPropagBottomUp.put(mot, lstResult);
+                    return;
+                }
+            }
+
+        } else {
+            nombreFanauxAvant = 0;
+            nombreFanauxApres = lstWinners.size();
+            while (nombreFanauxAvant != nombreFanauxApres) {
+                lstWinners = new LinkedList<>();
+                remiseZero(0);
+                for (Fanal f : bestScoresBottomUp.get(0)) {
+                    //f.setScore(f.getScore()+GAMA);
+                    activerConnectionsChaineTournois(f, g);
+                }
+
+                for (int i = 0; i < r.NUMBER_CLUSTERS; i++) {
+                    lstWinners.addAll(this.localWinnersTakeAll(g.getCluster(i).getFanalsList(), false));
+                }
+                bestScoresBottomUp.set(0, lstWinners);
+                ContextTypoNetwork.logger.debug("Nombre de fanaux: " + lstWinners.size());
+                nombreFanauxAvant = nombreFanauxApres;
+                nombreFanauxApres = lstWinners.size();
+            }
         }
+        LinkedList<LinkedList<Fanal>> auxListe = new LinkedList<>();
+        auxListe.add(lstFanaux);
+        seqsPropagBottomUp.put(mot, auxListe);
 
     }
 
@@ -596,16 +591,16 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         Fanal l;
         Edge a;
         FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
-        Edge[] listeArc = n.getGraphe().getListeArc(f);
+        Edge[] listeArc = n.getGraph().getEdgesList(f);
         for (int i = 0; i < listeArc.length; i++) {
             if (listeArc[i] != null) {
                 listeArc[i].setActive(true);
-                if (listeArc[i].getOrig().equals(f)) {
-                    l = listeArc[i].getDest();
-                    a = n.getGraphe().getArc(l, f);
+                if (listeArc[i].getSourceFanal().equals(f)) {
+                    l = listeArc[i].getDestinationFanal();
+                    a = n.getGraph().getEdge(l, f);
                 } else {
-                    l = listeArc[i].getOrig();
-                    a = n.getGraphe().getArc(f, l);
+                    l = listeArc[i].getSourceFanal();
+                    a = n.getGraph().getEdge(f, l);
                 }
                 if (a != null) {
                     a.setActive(true);
@@ -619,16 +614,16 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         Fanal l;
         Edge a;
         FuzzyLevel n = (FuzzyLevel) r.getLevelsList().get(h);
-        Edge[] listeArc = n.getGraphe().getListeArc(f);
+        Edge[] listeArc = n.getGraph().getEdgesList(f);
         for (int i = 0; i < listeArc.length; i++) {
             if (listeArc[i] != null) {
                 listeArc[i].setActive(true);
-                if (listeArc[i].getOrig().equals(f)) {
-                    l = listeArc[i].getDest();
-                    a = n.getGraphe().getArc(l, f);
+                if (listeArc[i].getSourceFanal().equals(f)) {
+                    l = listeArc[i].getDestinationFanal();
+                    a = n.getGraph().getEdge(l, f);
                 } else {
-                    l = listeArc[i].getOrig();
-                    a = n.getGraphe().getArc(f, l);
+                    l = listeArc[i].getSourceFanal();
+                    a = n.getGraph().getEdge(f, l);
                 }
                 if (a != null) {
                     a.setActive(true);
@@ -641,15 +636,15 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     private void activerConnectionsMacroFanal(MacroFanal fMacro, Graph g, int score) {
         for (Fanal fOrig : fMacro.getListFanaux()) {
             Fanal fDest;
-            Edge[] listeArc = g.getListeArc(fOrig);
+            Edge[] listeArc = g.getEdgesList(fOrig);
             HashMap<Cluster, Integer> listeClusters;
             HashMap<Fanal, HashMap<Cluster, Integer>> mapCluster;
             fOrig.setScore(fOrig.getScore() + GAMA_1);
             //fOrig.setScore(fOrig.getScore() + score);
             for (int i = 0; i < listeArc.length; i++) {
                 if (listeArc[i] != null) {
-                    if (listeArc[i].getOrig().equals(fOrig)) {
-                        fDest = listeArc[i].getDest();
+                    if (listeArc[i].getSourceFanal().equals(fOrig)) {
+                        fDest = listeArc[i].getDestinationFanal();
                         listeArc[i].setActive(true);
                         // Si il n'existe pas d'activation provenant du cluster de f
                         if (!clusterActiveSoM(fDest, ((FanalFlous) fOrig).getMacroFanal().getCluster(), 0)) {
@@ -693,14 +688,14 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     // Cette methode réalise le SoM
     private void activerConnectionsChaineTournois(Fanal fOrig, Graph g) {
         Fanal fDest;
-        Edge[] listeArc = g.getListeArc(fOrig);
+        Edge[] listeArc = g.getEdgesList(fOrig);
         HashMap<Cluster, Integer> listeClusters;
         HashMap<Fanal, HashMap<Cluster, Integer>> mapCluster;
         fOrig.setScore(fOrig.getScore() + GAMA_1);
         for (int i = 0; i < listeArc.length; i++) {
             if (listeArc[i] != null) {
-                if (listeArc[i].getOrig().equals(fOrig)) {
-                    fDest = listeArc[i].getDest();
+                if (listeArc[i].getSourceFanal().equals(fOrig)) {
+                    fDest = listeArc[i].getDestinationFanal();
                     listeArc[i].setActive(true);
                     // Si il n'existe pas d'activation provenant du cluster de f
                     if (!clusterActiveSoM(fDest, ((FanalFlous) fOrig).getCluster(), 0)) {
@@ -727,8 +722,8 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     public void activerFanauxInf(Fanal l, int h) {
         //Si il y a des connexions inferieurs, il les active 
         // Ensuite, il active les connexions des fanaux inferieurs
-        if (!l.getFanauxInf().isEmpty()) {
-            for (Fanal t : l.getFanauxInf()) {
+        if (!l.getInferiorFanals().isEmpty()) {
+            for (Fanal t : l.getInferiorFanals()) {
 
                 t.setScore(t.getScore() + 1);
             }
@@ -738,8 +733,8 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     public void activerFanauxSup(Fanal l, int h) {
         //Si il y a des connexions superieures, il les active 
         // Ensuite, il active les connexions des fanaux superieures
-        if (!l.getFanauxSup().isEmpty()) {
-            for (Fanal t : l.getFanauxSup()) {
+        if (!l.getSuperiorFanals().isEmpty()) {
+            for (Fanal t : l.getSuperiorFanals()) {
                 t.setScore(t.getScore() + 1);
             }
         }
@@ -760,22 +755,22 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         if (h == -1) {
             for (int i = 0; i < FuzzyNetwork.hMax; i++) {
                 n = (FuzzyLevel) r.getLevelsList().get(i);
-                for (Fanal f : n.getGraphe().sommets()) {
+                for (Fanal f : n.getGraph().getAllNodes()) {
                     f.setScore(0);
                 }
-                for (Fanal f : ((FuzzyGraph) n.getGraphe()).macroSommets()) {
+                for (Fanal f : ((FuzzyGraph) n.getGraph()).getMacroFanalsList()) {
                     f.setScore(0);
                 }
             }
             return;
         } else {
             n = (FuzzyLevel) r.getLevelsList().get(h);
-            for (Fanal f : n.getGraphe().sommets()) {
+            for (Fanal f : n.getGraph().getAllNodes()) {
                 f.setScore(0);
                 // Habiliter ligne quand utiliser le SOM
                 //this.desactiverConnectionsFanal(f,h);
             }
-            for (Fanal f : ((FuzzyGraph) n.getGraphe()).macroSommets()) {
+            for (Fanal f : ((FuzzyGraph) n.getGraph()).getMacroFanalsList()) {
                 f.setScore(0);
             }
         }
@@ -820,7 +815,6 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
         return lst;
     }
 
-
     // Il prend les premiers numElements
     public LinkedList<Fanal> globalWinnersTakeAll(int h, int numElements) {
 
@@ -832,7 +826,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
             vectorScores[i] = new LinkedList<>();
         }
         int maxScore = 0;
-        for (Fanal f : n.getGraphe().sommets()) {
+        for (Fanal f : n.getGraph().getAllNodes()) {
             vectorScores[f.getScore()].addLast(f);
             if (f.getScore() > maxScore) {
                 maxScore = f.getScore();
@@ -865,13 +859,13 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
     }
 
     public HashSet<MacroFanal> filtragePropagationLaterale() {
-        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraphe();
+        FuzzyGraph g = (FuzzyGraph) r.getLevelsList().get(0).getGraph();
         HashSet<MacroFanal> result = new HashSet<>();
         LinkedList<MacroFanal> winnersCluster = new LinkedList<>();
         int scoreMax, scoreFanal;
         for (int iClust = 0; iClust < r.NUMBER_CLUSTERS; iClust++) {
             scoreMax = 0;
-            for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanaux()) {
+            for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanalsList()) {
                 if (InterfaceNetwork.fanalScoreMap.containsKey(mfCluster)) {
                     scoreFanal = InterfaceNetwork.fanalScoreMap.get(mfCluster);
                     if (scoreFanal > scoreMax) {
@@ -879,7 +873,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     }
                 }
             }
-            for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanaux()) {
+            for (MacroFanal mfCluster : g.getCluster(iClust).getMacroFanalsList()) {
                 if (InterfaceNetwork.fanalScoreMap.containsKey(mfCluster)) {
                     scoreFanal = InterfaceNetwork.fanalScoreMap.get(mfCluster);
                     if (scoreFanal == scoreMax) {
@@ -910,7 +904,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                     for (Cluster c : activationsListeClusters.get(0).get(f).keySet()) {
                         scoreFanal += activationsListeClusters.get(0).get(f).get(c);
                     }
-                    ContextTypoNetwork.logger.debug("Second iteration LWsTA: " + f + " Lettre: " + ((FanalFlous) f).getLettre() + " Score: " + scoreFanal);
+                    ContextTypoNetwork.logger.debug("Second iteration LWsTA: " + f + " Lettre: " + ((FanalFlous) f).getLetter() + " Score: " + scoreFanal);
                     if (scoreFanal > scoreMax) {
                         listeWinners = new LinkedList<>();
                         listeWinners.add(f);
@@ -950,7 +944,7 @@ public class FuzzyDecoder extends Decoder implements LetterInformation {
                 for (Cluster c : activationsListeClusters.get(0).get(f).keySet()) {
                     scoreFanal += activationsListeClusters.get(0).get(f).get(c);
                 }
-                ContextTypoNetwork.logger.debug("Second iteration LWsTA: " + f + " Lettre: " + ((FanalFlous) f).getLettre() + " Score: " + scoreFanal);
+                ContextTypoNetwork.logger.debug("Second iteration LWsTA: " + f + " Lettre: " + ((FanalFlous) f).getLetter() + " Score: " + scoreFanal);
                 if (scoreFanal > scoreMax) {
                     listeWinners = new LinkedList<>();
                     listeWinners.add(f);

@@ -52,7 +52,7 @@ public class ContextTypoNetwork {
                 throw new FileNotExists(test_words_file);
             }
             HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_words_file));
-            cr.decoderPhase(testInput.get(ConfigFile.TestWords.WORDS.getIndex()), testInput.get(ConfigFile.TestWords.ERRORS.getIndex()), testInput.get(ConfigFile.TestWords.ERRORS_PHONS.getIndex()));
+            cr.decoderPhase(testInput.get(ConfigFile.TestWords.WORDS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS.getIndex()).subList(0, 100), testInput.get(ConfigFile.TestWords.ERRORS_PHONS.getIndex()).subList(0, 100));
         }
 
         if (ContextTypoNetwork.RATES_PER_NETWORK) {

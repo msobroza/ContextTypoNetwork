@@ -26,34 +26,26 @@ public class FuzzyNetwork extends Network {
     public int FANALS_PER_CLUSTER;
     // Nombre maximal de niveaux
     public static int hMax = 1;
-    // Active le seuilage
-    public static boolean SEUILLAGE = false;
-    // Active le losers kick out
-    public static boolean LOSERS_KICK_OUT = false;
-    // Active double lettres
-    public static boolean AVEC_DOUBLE_LETTRES = true;
-    // Active double lettres non consecutives
-    public static boolean AVEC_DOUBLE_LETTRES_NON_CONSEC = true;
     // Il active l'apprentissage des caractères délimiteurs
-    public static boolean CARAC_DELIM = true;
+    public static boolean USE_DELIMITERS = true;
     // Recouvrement ciculaire pour l'anticipation
-    public final int RECOUVR_CIRCULAIRE;
+    public final int R_CIRCULAR;
 
     // Utilise le flou de flou
     public static boolean FLOU2FLOU = true;
 
     // Active le mode d'apprentissage avec mitose de fanaux
-    public static boolean MITOSE_FANAUX = true;
+    public static boolean USE_MITOSIS = true;
     // Nombre d'iterations de mitose max
-    public static int NB_MITOSE_MAX = 1000000000;
+    public static int NB_MITOSIS_MAX = 1000000000;
     // Seuil de degré entrant provoquant la mitose d'un fanal 
-    public static int SEUIL_DEG_MITOSE = 25;
+    public static int THRESHOLD_DEG_MITOSE = 25;
 
     public int TYPE_INFONS;
 
     // Niveau Standard -> Il n'y a pas d'arc
-    private FuzzyLevel niveauStandard;
-    private final FuzzyDecoder decodeur;
+    private FuzzyLevel standartLevel;
+    private final FuzzyDecoder decoder;
 
     // Constructeur d'un réseau standard
     public FuzzyNetwork(int X, int type_infons) {
@@ -61,7 +53,7 @@ public class FuzzyNetwork extends Network {
         this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
         this.NUMBER_CLUSTERS = X;
         this.FANALS_PER_CLIQUE = X;
-        this.RECOUVR_CIRCULAIRE = this.NUMBER_CLUSTERS - 1;
+        this.R_CIRCULAR = this.NUMBER_CLUSTERS - 1;
         FuzzyNetwork.hMax = 1;
         this.TYPE_INFONS = type_infons;
         if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
@@ -73,12 +65,12 @@ public class FuzzyNetwork extends Network {
         hCounter = -1;
         // Creation d'un niveau standard
 
-        creerNiveauStandard();
+        createStandartLevel();
         // Creation des hMax niveaux
         for (int i = 0; i < hMax; i++) {
-            this.creerNiveauCopie();
+            this.copyLevel();
         }
-        decodeur = new FuzzyDecoder(this);
+        decoder = new FuzzyDecoder(this);
 
     }
 
@@ -87,7 +79,7 @@ public class FuzzyNetwork extends Network {
         this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
         this.NUMBER_CLUSTERS = rPrev.NUMBER_CLUSTERS;
         this.FANALS_PER_CLIQUE = rPrev.FANALS_PER_CLIQUE;
-        this.RECOUVR_CIRCULAIRE = NUMBER_CLUSTERS - 1;
+        this.R_CIRCULAR = NUMBER_CLUSTERS - 1;
         this.TYPE_INFONS = rPrev.TYPE_INFONS;
         if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
             this.FANALS_PER_CLUSTER = SYMBOLES.length();
@@ -100,35 +92,35 @@ public class FuzzyNetwork extends Network {
         hCounter = -1;
 
         for (int i = 0; i < hMax; i++) {
-            this.creerNiveauCopie();
+            this.copyLevel();
         }
 
         // Creation d'un niveau standard
-        this.creerNiveauStandard();
+        this.createStandartLevel();
         // Creation des hMax niveaux
         for (int i = 0; i < hMax; i++) {
             hCounter++;
-            levelsList.add(hCounter, (FuzzyLevel) rPrev.getLevelsList().get(hCounter).copie(hCounter));
+            levelsList.add(hCounter, (FuzzyLevel) rPrev.getLevelsList().get(hCounter).copy(hCounter));
         }
-        decodeur = new FuzzyDecoder(this);
+        decoder = new FuzzyDecoder(this);
 
     }
 
-    private void creerNiveauStandard() {
+    private void createStandartLevel() {
         MacroFanal mf;
         FanalFlous f;
         Cluster c;
-        String lettre;
-        this.niveauStandard = new FuzzyLevel(hCounter, this);
+        String letter;
+        this.standartLevel = new FuzzyLevel(hCounter, this);
 
         for (int iClust = 0; iClust < NUMBER_CLUSTERS; iClust++) {
             //Ajouter cluster
             c = new Cluster("c:" + iClust);
-            ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterCluster(c);
+            ((FuzzyGraph) this.standartLevel.getGraph()).ajouterCluster(c);
             if (FLOU2FLOU) {
                 // Détermination du nombre de fanaux par macrofanal
                 int nbFanauxParMF;
-                if (MITOSE_FANAUX) {
+                if (USE_MITOSIS) {
                     nbFanauxParMF = 1;
                 } else {
                     nbFanauxParMF = LetterInformation.NB_CAS;
@@ -137,32 +129,32 @@ public class FuzzyNetwork extends Network {
                 for (int iMFanal = 0; iMFanal < FANALS_PER_CLUSTER; iMFanal++) {
                     // On crée un nouveau macrofanal pour la lettre courante
                     mf = new MacroFanal("c:" + iClust + ",mf:" + iMFanal, 0);
-                    ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterMacroFanal(mf);
+                    ((FuzzyGraph) this.standartLevel.getGraph()).addMacroFanal(mf);
                     if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
-                        lettre = PHONEMES_LIA[iMFanal];
+                        letter = PHONEMES_LIA[iMFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
-                        lettre = SYMBOLES.substring(iMFanal, iMFanal + 1);
+                        letter = SYMBOLES.substring(iMFanal, iMFanal + 1);
                     }
 
                     // Associe la lettre au macrofanal
-                    mf.setLettre(lettre);
+                    mf.setLettre(letter);
                     // Ajouter le macrofanal dans le cluster
-                    c.ajouterMacroFanal(mf);
+                    c.addMacroFanal(mf);
                     // Ajouter le macrofanal dans le graphe
-                    ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterSommet(mf);
+                    ((FuzzyGraph) this.standartLevel.getGraph()).addNode(mf);
                     // Creer l'association lettre -> numero de macrofanal dans cluster
-                    c.associerMacroFanalLettre(mf, lettre);
+                    c.linkMacroFanalLetter(mf, letter);
                     // Ajout des fanaux dans le macrofanal
                     for (int iFanal = 0; iFanal < nbFanauxParMF; iFanal++) {
                         // Creer un nouveau sommet
                         f = new FanalFlous("c:" + iClust + ",mf:" + iMFanal + ",f:" + iFanal, 0);
                         // Associe la lettre au fanal
-                        f.setLettre(lettre);
+                        f.setLettre(letter);
                         // Ajouter le fanal dans le macrofanal
-                        mf.ajouterFanal(f);
+                        mf.addFanal(f);
                         // Ajouter le fanal dans le cluster
-                        c.ajouterFanal(f);
+                        c.addFanal(f);
                     }
                 }
             } else {
@@ -170,31 +162,31 @@ public class FuzzyNetwork extends Network {
                     // Creer un nouveau sommet
                     f = new FanalFlous("c:" + iClust + ",mf:" + iFanal, 0);
                     if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
-                        lettre = PHONEMES_LIA[iFanal];
+                        letter = PHONEMES_LIA[iFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
-                        lettre = SYMBOLES.substring(iFanal, iFanal + 1);
+                        letter = SYMBOLES.substring(iFanal, iFanal + 1);
                     }
                     // Associe la lettre au fanal
-                    f.setLettre(lettre);
+                    f.setLettre(letter);
                     // Ajouter le sommet dans le cluster
-                    c.ajouterFanal(f);
+                    c.addFanal(f);
                     // Creer l'association lettre -> numero de fanal dans cluster
-                    c.associerFanalLettre(f, f.getLettre());
+                    c.linkFanalLetter(f, f.getLetter());
 
                     // Ajouter le sommet dans le graphe
-                    ((FuzzyGraph) this.niveauStandard.getGraphe()).ajouterSommet(f);
+                    ((FuzzyGraph) this.standartLevel.getGraph()).addNode(f);
                 }
             }
         }
     }
 
-    private Level creerNiveauCopie() {
+    private Level copyLevel() {
         hCounter++;
         if (hCounter >= hMax) {
             return null;
         }
-        levelsList.add(hCounter, ((FuzzyLevel) niveauStandard).copie(hCounter));
+        levelsList.add(hCounter, ((FuzzyLevel) standartLevel).copy(hCounter));
         return levelsList.get(hCounter);
     }
 
@@ -283,7 +275,7 @@ public class FuzzyNetwork extends Network {
 
      } */
     public Decoder getDecodeur() {
-        return this.decodeur;
+        return this.decoder;
     }
 
     /**
@@ -308,7 +300,7 @@ public class FuzzyNetwork extends Network {
             // Pour l'instant, cela signifie que l'on a rien à faire
             return n.getWordClique(mot);
         } else {
-            n.ajouterAnticipCirculaire(mot, false);
+            n.addCircularAnticipation(mot, false);
         }
         return n.getWordClique(mot);
     }
@@ -322,7 +314,7 @@ public class FuzzyNetwork extends Network {
             // Pour l'instant, cela signifie que l'on a rien à faire
             return n.getWordClique(phon);
         } else {
-            n.ajouterAnticipCirculaire(phon, true);
+            n.addCircularAnticipation(phon, true);
         }
         return n.getWordClique(phon);
     }
@@ -331,27 +323,27 @@ public class FuzzyNetwork extends Network {
         // Pour tout les macrofanaux, si le dernier des fanaux créé est saturé, on crée un nouveau fanal
         MacroFanal mf;
         FanalFlous f;
-        FuzzyGraph G = (FuzzyGraph) this.getLevelsList().get(0).getGraphe();
+        FuzzyGraph G = (FuzzyGraph) this.getLevelsList().get(0).getGraph();
         int nbMitose = 0;
-        for (int k = 0; k < G.getNbMacroFanaux(); k++) {
+        for (int k = 0; k < G.getNumberMacroFanals(); k++) {
             // récupération du macrofanal courant
             mf = G.getMacroFanal(k);
             // récupération du dernier fanal crée dans mf
             f = mf.getListFanaux().getLast();
             // Si le dernier fanal créé dans le macrofanal est saturé, on crée un nouveau fanal dans le macrofanal
-            if (f.getDegEntrant() >= FuzzyNetwork.SEUIL_DEG_MITOSE) {
+            if (f.getInDegree() >= FuzzyNetwork.THRESHOLD_DEG_MITOSE) {
                 // Creer un nouveau sommet
                 FanalFlous fNew = new FanalFlous(f, 0);
                 // Rennomer le fanal
-                fNew.setNom(mf.getNom() + ",f:" + mf.getListFanaux().size());
+                fNew.setFanalName(mf.getFanalName() + ",f:" + mf.getListFanaux().size());
                 // Ajouter le fanal dans le macrofanal
-                mf.ajouterFanal(fNew);
+                mf.addFanal(fNew);
                 // Ajouter le fanal dans le cluster
-                mf.getCluster().ajouterFanal(fNew);
+                mf.getCluster().addFanal(fNew);
                 // TODO : supprimer l'ajout du fanal dans le graphe ???
                 // Ajouter le fanal dans le graphe
-                G.ajouterSommet(fNew);
-                ContextTypoNetwork.logger.debug("Création du fanal " + fNew.getNom());
+                G.addNode(fNew);
+                ContextTypoNetwork.logger.debug("Création du fanal " + fNew.getFanalName());
                 nbMitose++;
             }
         }
@@ -371,7 +363,7 @@ public class FuzzyNetwork extends Network {
     public int getNbArcs() {
         int result = 0;
         for (int i = 0; i < this.getLevelsList().size(); i++) {
-            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbArcs();
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraph()).getNumberEdges();
         }
         return result;
     }
@@ -379,7 +371,7 @@ public class FuzzyNetwork extends Network {
     public int getNbFanaux() {
         int result = 0;
         for (int i = 0; i < this.getLevelsList().size(); i++) {
-            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbFanaux();
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraph()).getNumberFanals();
         }
         return result;
     }
@@ -387,25 +379,25 @@ public class FuzzyNetwork extends Network {
     public int getNbMacroFanaux() {
         int result = 0;
         for (int i = 0; i < this.getLevelsList().size(); i++) {
-            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraphe()).getNbMacroFanaux();
+            result += ((FuzzyGraph) this.getLevelsList().get(i).getGraph()).getNumberMacroFanals();
         }
         return result;
     }
 
     public LinkedList<Integer> getDistriFanauxDegSortant() {
-        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDistriFanauxDegSortant();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getDistributionOutDegree();
     }
 
     public LinkedList<Integer> getDistriFanauxDegEntrant() {
-        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDistriFanauxDegEntrant();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getDistributionInDegree();
     }
 
     public ArrayList<FanalFlous> getFanauxGrandDegE(int seuilDegMitose) {
-        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getFanauxGrandDegE(seuilDegMitose);
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getFanauxGrandDegE(seuilDegMitose);
     }
 
     public double getDensite() {
-        return ((FuzzyGraph) this.getLevelsList().get(0).getGraphe()).getDensite();
+        return ((FuzzyGraph) this.getLevelsList().get(0).getGraph()).getDensity();
     }
 
 }

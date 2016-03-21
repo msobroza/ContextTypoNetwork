@@ -9,21 +9,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import model.Grapheme;
 
 public class PhonemeRules implements LetterInformation {
 
-    public static boolean LEFT = false;
-    public static boolean RIGHT = true;
-    public static String VOYELLE_L = "#VL";
-    public static String VOYELLE_R = "#VR";
-    public static String CONSONNE_L = "#CL";
-    public static String CONSONNE_R = "#CR";
-    // Ça represent une valeur nulle
+
     public static String NULL = "#N";
 
 
-    public static LinkedHashMap<String, ArrayList<String>> supprimePhonemesNulls(LinkedHashMap<String, ArrayList<String>> phonsEntree) {
+    public static LinkedHashMap<String, ArrayList<String>> removeNullPhoneme(LinkedHashMap<String, ArrayList<String>> phonsEntree) {
         LinkedHashMap<String, ArrayList<String>> phonsSortie = new LinkedHashMap<>(phonsEntree);
         ArrayList<String> phonListe;
         boolean premierElement = true;
@@ -84,7 +77,7 @@ public class PhonemeRules implements LetterInformation {
     }
 
     // Conversion des formats -> liste de phonemes correctes pour une liste d'une liste de phonemes
-    public static LinkedList<List<String>> phonemesCorrectesToList(List<String> phonsCorrectes) {
+    public static LinkedList<List<String>> correctesPhonemesToList(List<String> phonsCorrectes) {
         LinkedList<List<String>> result = new LinkedList<>();
         List<String> listePhons;
         for (String phon : phonsCorrectes) {
@@ -101,7 +94,7 @@ public class PhonemeRules implements LetterInformation {
         LinkedList<List<String>> result = new LinkedList<>();
         phonLIA = "<" + phonLIA + ">";
         List<String> listeAux;
-        for (String phon : separePhonemes(phonLIA)) {
+        for (String phon : PhonemeRules.splitPhoneme(phonLIA)) {
             listeAux = new ArrayList<>();
             listeAux.add(phon);
             result.add(listeAux);
@@ -126,7 +119,7 @@ public class PhonemeRules implements LetterInformation {
     }
 
     // Separe en phonemes plus petits
-    public static List<String> separePhonemes(String phon) {
+    public static List<String> splitPhoneme(String phon) {
         String seq = "";
         int offset;
         String[] seqMod;
@@ -144,7 +137,7 @@ public class PhonemeRules implements LetterInformation {
         return result;
     }
 
-    public static List<String> separePhonemes(LinkedList<List<String>> unite) {
+    public static List<String> splitPhoneme(LinkedList<List<String>> unite) {
         List<String> result = new ArrayList<>();
         for (List<String> lstUnite : unite) {
             result.add(lstUnite.get(0));

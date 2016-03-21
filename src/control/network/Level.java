@@ -13,8 +13,8 @@ import model.Fanal;
 public abstract class Level {
 
     protected int h;
-    protected Graph graphe;
-    protected Graph sousGraphe;
+    protected Graph graph;
+    protected Graph subGraph;
     protected HashMap<String, Clique> mapCliquesStr;
     protected HashMap<String, TournamentChain> mapCTournois;
 
@@ -22,12 +22,12 @@ public abstract class Level {
         return this.h;
     }
 
-    public Graph getGraphe() {
-        return this.graphe;
+    public Graph getGraph() {
+        return this.graph;
     }
 
-    public Graph getSousGraphe() {
-        return this.sousGraphe;
+    public Graph getSubGraphe() {
+        return this.subGraph;
     }
 
     public boolean existsClique(String info) {
@@ -43,13 +43,13 @@ public abstract class Level {
     
     @Override
     public String toString() {
-        return this.graphe.toString();
+        return this.graph.toString();
     }
     
 
-    public abstract Level copie(int h);
+    public abstract Level copy(int h);
 
-    protected boolean creerClique(List<Fanal> liste_f) {
+    protected boolean createClique(List<Fanal> liste_f) {
         if (liste_f.isEmpty()) {
             return true;
         } else {
@@ -57,46 +57,46 @@ public abstract class Level {
             for (int i = 1; i < liste_f.size(); i++) {
                 existeArc = false;
                 // Si la connexion existe déjà, on ne va pas la creer (non-orienté)
-                if (this.graphe.existeArc(liste_f.get(0), liste_f.get(i))) {
-                    if (!this.graphe.getArc(liste_f.get(0), liste_f.get(i)).isOriente()) {
+                if (this.graph.existsEdge(liste_f.get(0), liste_f.get(i))) {
+                    if (!this.graph.getEdge(liste_f.get(0), liste_f.get(i)).isOriented()) {
                         existeArc = true;
                     }
                 }
                 if (!existeArc) {
                     //Il cree des arcs sans orientation
                     // Creer les arcs de la clique
-                    this.graphe.ajouterArc(liste_f.get(0), liste_f.get(i), 0, false);
-                    this.graphe.ajouterArc(liste_f.get(i), liste_f.get(0), 0, false);
+                    this.graph.addEdge(liste_f.get(0), liste_f.get(i), 0, false);
+                    this.graph.addEdge(liste_f.get(i), liste_f.get(0), 0, false);
                 }
             }
             liste_f.remove(0);
-            creerClique(liste_f);
+            createClique(liste_f);
             return false;
         }
     }
 
-    protected boolean creerChaineTournois(List<Fanal> liste_fA, List<Fanal> liste_fB, Graph g) {
+    protected boolean createTournamentChain(List<Fanal> liste_fA, List<Fanal> liste_fB, Graph g) {
 
         boolean existeArc;
         for (int i = 0; i < liste_fA.size(); i++) {
             for (int j = 0; j < liste_fB.size(); j++) {
                 existeArc = false;
-                if (g.existeArc(liste_fA.get(i), liste_fB.get(j))) {
-                    if (g.getArc(liste_fA.get(i), liste_fB.get(j)).isOriente()) {
+                if (g.existsEdge(liste_fA.get(i), liste_fB.get(j))) {
+                    if (g.getEdge(liste_fA.get(i), liste_fB.get(j)).isOriented()) {
                         existeArc = true;
                     }
                 }
                 if (!existeArc) {
                     // S'ils n'existent pas encore, on cree les arcs avec orientation pour la chaine de tournois
                     //TypoMultireseaux.logger.debug(": " + liste_fA.get(i) + " -> " + liste_fB.get(j));
-                    g.ajouterArc(liste_fA.get(i), liste_fB.get(j), 0, true);
+                    g.addEdge(liste_fA.get(i), liste_fB.get(j), 0, true);
                 }
             }
         }
         return true;
     }
 
-    protected TournamentChain ajouterCTournois(Clique l_clique, Graph l_graphe, Clique r_clique, Graph r_graphe, String info, Graph g) {
+    protected TournamentChain addCTournois(Clique l_clique, Graph l_graphe, Clique r_clique, Graph r_graphe, String info, Graph g) {
         if (mapCTournois.containsKey(info)) {
             return mapCTournois.get(info);
         } else {
@@ -111,7 +111,7 @@ public abstract class Level {
                 listeB.addLast(g.getNumerotation().elementAt(r_graphe.getNumerotation().numero(f)));
             }
             TournamentChain c = new TournamentChain(listeA, listeB);            
-            if (creerChaineTournois(listeA, listeB, g)) {
+            if (createTournamentChain(listeA, listeB, g)) {
                 this.mapCTournois.put(info, c);
                 return c;
             } else {

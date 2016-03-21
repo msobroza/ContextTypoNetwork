@@ -2,6 +2,15 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/decoder/TriangularDecoder.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/NetworkControl.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/ContextTypoNetwork.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/decoder/Decoder.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/rules/LetterInformation.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/network/FuzzyNetwork.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/ControlTCPServer.java</file>
+            <file>file:/home/msobroza/NetBeansProjects/ContextTypoNetwork/src/control/rules/PhonemeRules.java</file>
+        </group>
     </open-files>
 </project-private>
