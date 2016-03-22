@@ -1,14 +1,9 @@
 package control.rules;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class PhonemeRules implements LetterInformation {
 
@@ -17,42 +12,42 @@ public class PhonemeRules implements LetterInformation {
 
 
     public static LinkedHashMap<String, ArrayList<String>> removeNullPhoneme(LinkedHashMap<String, ArrayList<String>> phonsEntree) {
-        LinkedHashMap<String, ArrayList<String>> phonsSortie = new LinkedHashMap<>(phonsEntree);
-        ArrayList<String> phonListe;
-        boolean premierElement = true;
+        LinkedHashMap<String, ArrayList<String>> phonsResult = new LinkedHashMap<>(phonsEntree);
+        ArrayList<String> phonList;
+        boolean firstElement = true;
         String dernierMot = "";
         int c = 0;
         for (String keyPhon : phonsEntree.keySet()) {
             if (phonsEntree.get(keyPhon).size() == 1 && phonsEntree.get(keyPhon).get(0).equals(NULL)) {
-                if (premierElement) {
-                    phonListe = new ArrayList<>();
-                    phonListe.add(BEGIN_WORD_CHAR);
-                    phonsSortie.put(keyPhon, phonListe);
-                    premierElement = false;
+                if (firstElement) {
+                    phonList = new ArrayList<>();
+                    phonList.add(BEGIN_WORD_SYMBOL);
+                    phonsResult.put(keyPhon, phonList);
+                    firstElement = false;
                 } else {
-                    phonsSortie.remove(keyPhon);
+                    phonsResult.remove(keyPhon);
                 }
 
             } else {
                 // Supprime le null, si c'est la fin on le remplace pour >
                 if (phonsEntree.get(keyPhon).contains(NULL)) {
-                    phonListe = new ArrayList<>(phonsSortie.get(keyPhon));
-                    phonListe.remove(NULL);
+                    phonList = new ArrayList<>(phonsResult.get(keyPhon));
+                    phonList.remove(NULL);
                     if (phonsEntree.size() - 1 == c) {
                         dernierMot = keyPhon;
-                        phonListe.add(END_WORD_CHAR);
+                        phonList.add(END_WORD_SYMBOL);
                     }
-                    phonsSortie.put(keyPhon, phonListe);
+                    phonsResult.put(keyPhon, phonList);
                 }
             }
             c++;
         }
-        if (dernierMot.equals("") || !phonsSortie.get(dernierMot).contains(END_WORD_CHAR)) {
-            phonListe = new ArrayList<>();
-            phonListe.add(END_WORD_CHAR);
-            phonsSortie.put(END_WORD_CHAR, phonListe);
+        if (dernierMot.equals("") || !phonsResult.get(dernierMot).contains(END_WORD_SYMBOL)) {
+            phonList = new ArrayList<>();
+            phonList.add(END_WORD_SYMBOL);
+            phonsResult.put(END_WORD_SYMBOL, phonList);
         }
-        return phonsSortie;
+        return phonsResult;
     }
 
     // Ce methode permet de lire la liste de phonemes
@@ -125,13 +120,13 @@ public class PhonemeRules implements LetterInformation {
         String[] seqMod;
         ArrayList<String> result = new ArrayList<>();
 
-        seq = LetterInformation.BEGIN_WORD_CHAR;
+        seq = LetterInformation.BEGIN_WORD_SYMBOL;
         result.add(seq);
         phon = phon.substring(1, phon.length() - 1);
         for (int pos = 0; pos < phon.length(); pos = pos + 2) {
             result.add(phon.substring(pos, pos + 2));
         }
-        seq = LetterInformation.END_WORD_CHAR;
+        seq = LetterInformation.END_WORD_SYMBOL;
         result.add(seq);
 
         return result;
@@ -148,7 +143,7 @@ public class PhonemeRules implements LetterInformation {
     public static List<String> phonemesLIAToList(String phon) {
         List<String> result = new ArrayList<>();
         for (int i = 0; i < phon.length(); i++) {
-            if (!phon.substring(i, i + 1).equals(ERASURE_CHAR) && !phon.substring(i, i + 1).equals(BEGIN_WORD_CHAR) && !phon.substring(i, i + 1).equals(END_WORD_CHAR)) {
+            if (!phon.substring(i, i + 1).equals(ERASURE_SYMBOL) && !phon.substring(i, i + 1).equals(BEGIN_WORD_SYMBOL) && !phon.substring(i, i + 1).equals(END_WORD_SYMBOL)) {
                 result.add(phon.substring(i, i + 2));
                 i++;
             } else {

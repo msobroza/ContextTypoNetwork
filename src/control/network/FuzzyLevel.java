@@ -81,7 +81,7 @@ public class FuzzyLevel extends Level implements LetterInformation {
                 ContextTypoNetwork.logger.debug("Phoneme a apprendre: " + info + " Longueur: " + info.length());
                 for (int i = 0; i < info.length(); i++) {
 
-                    if (info.substring(i, i + 1).equals(BEGIN_WORD_CHAR) || info.substring(i, i + 1).equals(END_WORD_CHAR)) {
+                    if (info.substring(i, i + 1).equals(BEGIN_WORD_SYMBOL) || info.substring(i, i + 1).equals(END_WORD_SYMBOL)) {
                         String lettre = info.substring(i, i + 1);
                         // Note : si on utilise des macrofanaux, la méthode getFanal de la classe Cluster renvoit un macrofanal
                         fanalsList.add(((FuzzyGraph) this.graph).getCluster(iCluster).getMacroFanal(lettre));

@@ -3,7 +3,6 @@ package control.network;
 import model.Fanal;
 import model.Clique;
 import graph.TriangularGraph;
-import control.NetworkControl;
 import control.ContextTypoNetwork;
 import control.decoder.TriangularDecoder;
 import java.util.ArrayList;

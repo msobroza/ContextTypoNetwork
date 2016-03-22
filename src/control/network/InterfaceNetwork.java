@@ -13,25 +13,61 @@ import java.util.List;
 import model.Clique;
 import model.Fanal;
 import model.FuzzyFanal;
-import model.MacroFanal;
 
 public class InterfaceNetwork extends TriangularNetwork implements LetterInformation {
 
     // Ils définissent le type d'information à être appris pour chaque reseau
-    public static final int INFORMATION_CONTENT_WORDS = 0;
-    public static final int INFORMATION_CONTENT_PHONEMES = 1;
+    public enum InformationContent {
+
+        WORDS(0), PHONEMES(1), SENTENCES(2);
+
+        private int value;
+
+        private InformationContent(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return this.value;
+        }
+
+    }
 
     // Ils définissent le type de liaison entre les cliques frontieres des reseaux
-    public static int TYPE_LIAISON_UNIDIRECTIONNELLE = 0;
-    public static int TYPE_LIAISON_BIDIRECTIONNELLE = 1;
+    public enum LinkType {
+
+        UNIDIRECTIONAL(0), BIDIRECTIONAL(1);
+
+        private int type;
+
+        private LinkType(int type) {
+            this.type = type;
+        }
+
+        public int getType() {
+            return this.type;
+        }
+
+    }
 
     // Ils définissent la direction d'activation
-    public static int ACTIVATION_VERS_DROITE = 0;
-    public static int ACTIVATION_TO_LEFT_SIDE = 1;
+    public enum ActivationType {
+
+        ACTIVATION_TO_RIGHT(0), ACTIVATION_TO_LEFT_SIDE(1);
+        private int type;
+
+        private ActivationType(int type) {
+            this.type = type;
+        }
+
+        public int getValue() {
+            return this.type;
+        }
+    }
 
     // Ces attributs representent les reseaux de l'interface reseaux
     private final ArrayList<Network> multimodalNetworks;
-    private final ArrayList<Integer> typeNetworks;
+    private final ArrayList<InformationContent> typeNetworks;
     private final NetworkControl networkControl;
     private ArrayList<HashSet<Fanal>> decodedFanals;
 
@@ -55,15 +91,21 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         fanalScoreMap = new HashMap<>();
         if (ContextTypoNetwork.RATES_PER_NETWORK) {
 
-            this.decodedFanals.add(NetworkControl.TRIANGULAR_NETWORK_INDEX, new HashSet<>());
+            this.decodedFanals.add(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), new HashSet<>());
 
-            this.decodedFanals.add(NetworkControl.FUZZY_NETWORK_INDEX, new HashSet<>());
+            this.decodedFanals.add(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), new HashSet<>());
+
+            if (ContextTypoNetwork.USE_CONTEXT_INFORMATION) {
+
+                this.decodedFanals.add(NetworkControl.IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex(), new HashSet<>());
+            }
+
         }
 
     }
 
     // On ajoute un reseau d'indice "indiceReseau" et avec un type
-    public void addNetwork(Network r, int indiceReseau, int typeReseau) {
+    public void addNetwork(Network r, int indiceReseau, InformationContent typeReseau) {
         this.multimodalNetworks.add(indiceReseau, r);
         this.typeNetworks.add(indiceReseau, typeReseau);
     }
@@ -77,29 +119,33 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         TriangularLevel n;
         // Il obtient le niveau h=0
         n = (TriangularLevel) this.levelsList.get(0);
-        if (n.existsClique("<" + word + ">")) {
+        if (n.existsClique(BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL)) {
             return null;
         } else {
-            ContextTypoNetwork.logger.debug("Réseau d'interface - <" + word + "> -");
+            cliqueInf = null;
+            ContextTypoNetwork.logger.debug("Réseau d'interface - " + BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL + " -");
             // Il ajoute la clique du mot dans le niveau h=0 du reseau interface
-            cliqueInterface = n.addClique("<" + word + ">", 1, "", 0, "", 0, this.FANALS_PER_CLIQUE);
+            cliqueInterface = n.addClique(BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL, 1, "", 0, "", 0, this.FANALS_PER_CLIQUE);
             for (int i = 0; i < multimodalNetworks.size(); i++) {
                 // Il selectionne le type d'information à garder
-                if (typeNetworks.get(i) == INFORMATION_CONTENT_WORDS && multimodalNetworks.get(i).getTypeReseau() == NetworkControl.FUZZY_NETWORK) {
-                    String variableWord = "<" + word + ">";
+                if (typeNetworks.get(i) == InformationContent.WORDS && multimodalNetworks.get(i).getTypeReseau() == NetworkControl.TypeNetwork.FUZZY_NETWORK) {
+                    String variableWord = BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL;
                     if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
                         int size = variableWord.length();
                         for (int j = 0; j < ((FuzzyNetwork) multimodalNetworks.get(i)).NUMBER_CLUSTERS - size; j++) {
-                            variableWord = variableWord + "*";
+                            variableWord = variableWord + PADDING_SYMBOL;
                         }
                     }
                     cliqueInf = ((FuzzyLevel) ((FuzzyNetwork) multimodalNetworks.get(i)).levelsList.get(0)).getCliqueWordFuzzy(variableWord);
                     ContextTypoNetwork.logger.debug("Clique mot: " + word + " : " + cliqueInf.getInfo());
                 } else {
-                    cliqueInf = ((TriangularNetwork) multimodalNetworks.get(i)).getSuperiorLevel().getWordClique("<" + networkControl.getPhoneme(word) + ">");
-                    ContextTypoNetwork.logger.debug("Clique phoneme: " + networkControl.getPhoneme(word) + " : " + cliqueInf.getInfo());
+                    if (typeNetworks.get(i) == InformationContent.PHONEMES && multimodalNetworks.get(i).getTypeReseau() == NetworkControl.TypeNetwork.TRIANGULAR_NETWORK) {
+                        cliqueInf = ((TriangularNetwork) multimodalNetworks.get(i)).getSuperiorLevel().getWordClique(BEGIN_WORD_SYMBOL + networkControl.getPhoneme(word) + END_WORD_SYMBOL);
+                        ContextTypoNetwork.logger.debug("Clique phoneme: " + networkControl.getPhoneme(word) + " : " + cliqueInf.getInfo());
+                    } else {
+                        continue;
+                    }
                 }
-
                 // Il cree la liaison entre les deux niveaux
                 for (Fanal fInf : cliqueInf.getFanalsList()) {
                     for (Fanal fSup : cliqueInterface.getFanalsList()) {
@@ -115,6 +161,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
                         cliqueRight = cliqueInf;
                     }
                 }
+
             }
             if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
                 for (Fanal fLeft : cliqueLeft.getFanalsList()) {
@@ -140,19 +187,19 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         FuzzyDecoder fuzzyDecoder;
         String fuzzyWord;
         // ---- Flous de mots -------
-        fuzzyRightNetwork = (FuzzyNetwork) multimodalNetworks.get(NetworkControl.FUZZY_NETWORK_INDEX);
+        fuzzyRightNetwork = (FuzzyNetwork) multimodalNetworks.get(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex());
         // Il prend le decodeur du Reseau Flous
         fuzzyDecoder = (FuzzyDecoder) (fuzzyRightNetwork).getDecodeur();
         // Ajoute postambule dans le mot (information de non information)
         if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = modifiedWord.length();
             for (int i = 0; i < fuzzyRightNetwork.NUMBER_CLUSTERS - taille; i++) {
-                modifiedWord = modifiedWord + "*";
+                modifiedWord = modifiedWord + PADDING_SYMBOL;
             }
         }
         if (modifiedWord.length() < fuzzyRightNetwork.NUMBER_CLUSTERS) {
 
-            fuzzyWord = "<" + NetworkControl.insertLetter(modifiedWord.substring(1, modifiedWord.length() - 1), ERASURE_CHAR, fuzzyRightNetwork.NUMBER_CLUSTERS - modifiedWord.length()) + ">";
+            fuzzyWord = BEGIN_WORD_SYMBOL + NetworkControl.insertLetter(modifiedWord.substring(1, modifiedWord.length() - 1), ERASURE_SYMBOL, fuzzyRightNetwork.NUMBER_CLUSTERS - modifiedWord.length()) + END_WORD_SYMBOL;
             // Il réalise la propagation et decodage (0 est la fênetre initialle)
             fuzzyDecoder.recognizePatternBottomUpDecoding(fuzzyWord, 0, false, 0);
             // Il obtient les fanaux gagnants du decodage flous
@@ -171,9 +218,9 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
         LinkedList<Fanal> lstAux = new LinkedList<>();
         lstAux.addAll(fuzzyFanalsList);
-        InterfaceNetwork.this.activateLateralConnections(lstAux, ACTIVATION_TO_LEFT_SIDE);
+        InterfaceNetwork.this.activateLateralConnections(lstAux, ActivationType.ACTIVATION_TO_LEFT_SIDE.getValue());
         // Si il y a un reseau triangulaire de phonemes
-        triangularNetwork = (TriangularNetwork) multimodalNetworks.get(NetworkControl.TRIANGULAR_NETWORK_INDEX);
+        triangularNetwork = (TriangularNetwork) multimodalNetworks.get(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex());
         // Il prend le decodeur du Reseau Triangulaire
         triangularDecoder = (TriangularDecoder) (triangularNetwork.getDecoder());
         triangularFanalsList.addAll(triangularDecoder.getWinnersTwoLevelsJumpDecoding(phonemes));
@@ -181,11 +228,11 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
         // Ajoute la liste de gagnants des reseaux
         if (ContextTypoNetwork.RATES_PER_NETWORK) {
-            this.decodedFanals.set(NetworkControl.FUZZY_NETWORK_INDEX, fuzzyFanalsSet);
-            ContextTypoNetwork.logger.warn("#Flous Mots # " + this.decodedFanals.get(NetworkControl.FUZZY_NETWORK_INDEX).size());
+            this.decodedFanals.set(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), fuzzyFanalsSet);
+            ContextTypoNetwork.logger.warn("#Flous Mots # " + this.decodedFanals.get(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex()).size());
 
-            this.decodedFanals.set(NetworkControl.TRIANGULAR_NETWORK_INDEX, triangularFanalsSet);
-            ContextTypoNetwork.logger.warn("#Triang # " + this.decodedFanals.get(NetworkControl.TRIANGULAR_NETWORK_INDEX).size());
+            this.decodedFanals.set(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), triangularFanalsSet);
+            ContextTypoNetwork.logger.warn("#Triang # " + this.decodedFanals.get(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex()).size());
 
         }
 
@@ -215,7 +262,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
     private void activateLateralConnections(Fanal fanalActive, int directionActivation) {
         // Convention: HyperSup est a droite et HyperInf est a gauche 
-        if (directionActivation == ACTIVATION_TO_LEFT_SIDE) {
+        if (directionActivation == ActivationType.ACTIVATION_TO_LEFT_SIDE.getValue()) {
             for (Fanal f : fanalActive.getInferiorHyperFanals()) {
 
                 if (fanalScoreMap.containsKey(f)) {
@@ -244,12 +291,12 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         HashSet<Fanal> macroWinnersFanalsPerNetwork = new HashSet<>();
         LinkedList<Fanal> correctFanals;
         int fanalsPerClique;
-        if (networkIndex == NetworkControl.FUZZY_NETWORK_INDEX) {
+        if (networkIndex == NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex()) {
             // Substituir por uma unica funcao
             if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
                 int size = learntWords.length();
                 for (int i = 0; i < ((FuzzyNetwork) this.multimodalNetworks.get(networkIndex)).NUMBER_CLUSTERS - size; i++) {
-                    learntWords = learntWords + "*";
+                    learntWords = learntWords + PADDING_SYMBOL;
                 }
             }
 
@@ -262,7 +309,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
             correctFanals = ((TriangularNetwork) this.multimodalNetworks.get(networkIndex)).getSuperiorLevel().getWordClique(learntWords).getFanalsList();
 
         }
-        if (NetworkControl.FUZZY_NETWORK_INDEX == networkIndex) {
+        if (NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex() == networkIndex) {
             for (Fanal f : correctFanals) {
                 if (macroWinnersFanalsPerNetwork.contains(f)) {
                     foundFanals++;

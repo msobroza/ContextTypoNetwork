@@ -1,5 +1,6 @@
 package control.network;
 
+import control.NetworkControl.TypeNetwork;
 import control.rules.LetterInformation;
 import java.util.LinkedList;
 import model.Clique;
@@ -8,7 +9,7 @@ public abstract class Network implements LetterInformation {
     
     protected int hCounter;
     protected LinkedList<Level> levelsList;
-    protected int TYPE_RESEAU;
+    protected TypeNetwork TYPE_NETWORK;
     
     
     @Override
@@ -20,7 +21,7 @@ public abstract class Network implements LetterInformation {
         }
         return result;
     }
-    public abstract Clique learnWord(String mot);
+    public abstract Clique learnWord(String word);
     
     public abstract Clique learnPhoneme(String phon);
 
@@ -28,28 +29,7 @@ public abstract class Network implements LetterInformation {
         return levelsList;
     }
     
-    public int getTypeReseau(){
-        return TYPE_RESEAU;
-    }
-    
-
-    protected static boolean isDoubleLettre(String mot) {
-        for (int i = 0; i < mot.length() - 1; i++) {
-            if (mot.charAt(i) == mot.charAt(i + 1)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected static boolean isDoubleLettreNonCons(String mot) {
-        for (int i = 0; i < mot.length() - 1; i++) {
-            for (int j = i + 1; j < mot.length(); j++) {
-                if (mot.charAt(i) == mot.charAt(j)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public TypeNetwork getTypeReseau(){
+        return TYPE_NETWORK;
     }
 }

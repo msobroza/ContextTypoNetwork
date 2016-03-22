@@ -1,6 +1,5 @@
 package control.network;
 
-import control.ContextTypoNetwork;
 import graph.Graph;
 import java.util.HashMap;
 import java.util.LinkedList;

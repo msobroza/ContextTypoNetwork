@@ -82,7 +82,7 @@ public class TriangularNetwork extends Network {
     protected final TriangularDecoder decodeur;
 
     public TriangularNetwork(int l, int X, int c, int hMax, boolean ADDITIONAL_LEVEL, boolean INTERFACE) {
-        this.TYPE_RESEAU= NetworkControl.TRIANGULAR_NETWORK;
+        this.TYPE_NETWORK= NetworkControl.TypeNetwork.TRIANGULAR_NETWORK;
         this.FANALS_PER_CLUSTER = l;
         this.NOMBRE_CLUSTERS = X;
         this.FANALS_PER_CLIQUE = c;
@@ -258,7 +258,7 @@ public class TriangularNetwork extends Network {
             // Si la sous échantillonnage entre le premiere et le deuxieme niveau est activée
             // Le premiere niveau a nombre_fanaux_par_clique_h0 fanaux
             if (seq.length() == 1 && this.SUBSAMPLING_H0) {
-                if (this.USE_DELIMITER_CHAR && (seq.equals("<") || (seq.equals(">")))) {
+                if (this.USE_DELIMITER_CHAR && (seq.equals(BEGIN_WORD_SYMBOL) || (seq.equals(END_WORD_SYMBOL)))) {
                     n.addClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.FANALS_PER_CLIQUE_H0 * 2);
                 } else {
                     n.addClique(seq, listeSeq.size(), seqLeft, listeSeqLeft.size(), seqRight, listeSeqRight.size(), this.FANALS_PER_CLIQUE_H0);
@@ -282,14 +282,14 @@ public class TriangularNetwork extends Network {
         decodeur.remiseMemo();
 
         if (this.DECODING_HYPER_LINK_BIGRAMMES) {
-            decodeur.recognizeBottomUpHyper2Levels(PhonemeRules.correctsPhonemesToList(PhonemeRules.splitPhoneme("<" + phoneme + ">")), phonemeRecherche);
+            decodeur.recognizeBottomUpHyper2Levels(PhonemeRules.correctsPhonemesToList(PhonemeRules.splitPhoneme(BEGIN_WORD_SYMBOL + phoneme + END_WORD_SYMBOL)), phonemeRecherche);
         } else {
-            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.splitPhoneme("<" + phoneme + ">"), TriangularDecoder.LEFT, true, true);
+            decodeur.reconnaitreBottomUpPhoneme(PhonemeRules.splitPhoneme(BEGIN_WORD_SYMBOL + phoneme + END_WORD_SYMBOL), TriangularDecoder.LEFT, true, true);
         }
         if (this.ADDITIONAL_LEVEL) {
-            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", this.hMax - 1);
+            result = decodeur.verifieDecodageBottomUp(BEGIN_WORD_SYMBOL + phonemeRecherche + END_WORD_SYMBOL, this.hMax - 1);
         } else {
-            result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", PhonemeRules.splitPhoneme("<" + phoneme + ">").size() - 1);
+            result = decodeur.verifieDecodageBottomUp(BEGIN_WORD_SYMBOL + phonemeRecherche + END_WORD_SYMBOL, PhonemeRules.splitPhoneme(BEGIN_WORD_SYMBOL + phoneme + END_WORD_SYMBOL).size() - 1);
         }
         return result;
     }
@@ -300,15 +300,12 @@ public class TriangularNetwork extends Network {
 
         if (this.DECODING_HYPER_LINK_BIGRAMMES) {
             decodeur.recognizeBottomUpHyper2Levels(PhonemeRules.graphemePhonemesToList(PhonemeRules.removeNullPhoneme(phon)), phonemeSearched);
-        } else {
-            // decodeur.reconnaitreBottomUp(ReglesPhonemes.separePhonemes("<" + phoneme + ">"), DecodageTriang.LEFT, true, true);
         }
         if (this.ADDITIONAL_LEVEL) {
 
             result = decodeur.verifieDecodageBottomUp(phonemeSearched, this.hMax - 1);
         } else {
-            result = decodeur.verifieDecodageBottomUp("<" + phonemeSearched + ">", this.hMax - 1);
-            //result = decodeur.verifieDecodageBottomUp("<" + phonemeRecherche + ">", ReglesPhonemes.separePhonemes("<" + phoneme + ">").size() - 1);
+            result = decodeur.verifieDecodageBottomUp(BEGIN_WORD_SYMBOL + phonemeSearched + END_WORD_SYMBOL, this.hMax - 1);
         }
 
         return result;

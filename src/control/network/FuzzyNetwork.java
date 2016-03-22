@@ -5,6 +5,7 @@ import control.rules.LetterInformation;
 import control.ContextTypoNetwork;
 import control.decoder.Decoder;
 import control.decoder.FuzzyDecoder;
+import control.network.InterfaceNetwork.InformationContent;
 import graph.FuzzyGraph;
 
 import java.util.ArrayList;
@@ -39,25 +40,25 @@ public class FuzzyNetwork extends Network {
     // Nombre d'iterations de mitose max
     public static int NB_MITOSIS_MAX = 1000000000;
     // Seuil de degré entrant provoquant la mitose d'un fanal 
-    public static int THRESHOLD_DEG_MITOSE = 25;
+    public static int THRESHOLD_DEG_MITOSIS = 25;
 
-    public int TYPE_INFONS;
+    public InformationContent TYPE_INFONS;
 
     // Niveau Standard -> Il n'y a pas d'arc
     private FuzzyLevel standartLevel;
     private final FuzzyDecoder decoder;
 
     // Constructeur d'un réseau standard
-    public FuzzyNetwork(int X, int type_infons) {
+    public FuzzyNetwork(int X, InformationContent type_infons) {
         System.out.println("Nombre de clusters: " + X);
-        this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
+        this.TYPE_NETWORK = NetworkControl.TypeNetwork.FUZZY_NETWORK;
         this.NUMBER_CLUSTERS = X;
         this.FANALS_PER_CLIQUE = X;
         this.R_CIRCULAR = this.NUMBER_CLUSTERS - 1;
         FuzzyNetwork.hMax = 1;
         this.TYPE_INFONS = type_infons;
-        if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
-            this.FANALS_PER_CLUSTER = SYMBOLES.length();
+        if (TYPE_INFONS == InterfaceNetwork.InformationContent.WORDS) {
+            this.FANALS_PER_CLUSTER = SYMBOLS.length();
         } else {
             this.FANALS_PER_CLUSTER = PHONEMES_LIA.length;
         }
@@ -76,13 +77,13 @@ public class FuzzyNetwork extends Network {
 
     // Constructeur d'un réseau initialisé (sans connexions), de même architecture que le réseau rPrev    
     public FuzzyNetwork(FuzzyNetwork rPrev) {
-        this.TYPE_RESEAU = NetworkControl.FUZZY_NETWORK;
+        this.TYPE_NETWORK = NetworkControl.TypeNetwork.FUZZY_NETWORK;
         this.NUMBER_CLUSTERS = rPrev.NUMBER_CLUSTERS;
         this.FANALS_PER_CLIQUE = rPrev.FANALS_PER_CLIQUE;
         this.R_CIRCULAR = NUMBER_CLUSTERS - 1;
         this.TYPE_INFONS = rPrev.TYPE_INFONS;
-        if (TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_WORDS) {
-            this.FANALS_PER_CLUSTER = SYMBOLES.length();
+        if (TYPE_INFONS == InterfaceNetwork.InformationContent.WORDS) {
+            this.FANALS_PER_CLUSTER = SYMBOLS.length();
         } else {
             this.FANALS_PER_CLUSTER = PHONEMES_LIA.length;
         }
@@ -130,11 +131,11 @@ public class FuzzyNetwork extends Network {
                     // On crée un nouveau macrofanal pour la lettre courante
                     mf = new MacroFanal("c:" + iClust + ",mf:" + iMFanal, 0);
                     ((FuzzyGraph) this.standartLevel.getGraph()).addMacroFanal(mf);
-                    if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
+                    if (this.TYPE_INFONS == InterfaceNetwork.InformationContent.PHONEMES) {
                         letter = PHONEMES_LIA[iMFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
-                        letter = SYMBOLES.substring(iMFanal, iMFanal + 1);
+                        letter = SYMBOLS.substring(iMFanal, iMFanal + 1);
                     }
 
                     // Associe la lettre au macrofanal
@@ -161,11 +162,11 @@ public class FuzzyNetwork extends Network {
                 for (int iFanal = 0; iFanal < FANALS_PER_CLUSTER; iFanal++) {
                     // Creer un nouveau sommet
                     f = new FuzzyFanal("c:" + iClust + ",mf:" + iFanal, 0);
-                    if (this.TYPE_INFONS == InterfaceNetwork.INFORMATION_CONTENT_PHONEMES) {
+                    if (this.TYPE_INFONS == InterfaceNetwork.InformationContent.PHONEMES) {
                         letter = PHONEMES_LIA[iFanal];
                     } else {
                         // Determine la lettre correspondant au macrofanal créé
-                        letter = SYMBOLES.substring(iFanal, iFanal + 1);
+                        letter = SYMBOLS.substring(iFanal, iFanal + 1);
                     }
                     // Associe la lettre au fanal
                     f.setLettre(letter);
@@ -189,91 +190,7 @@ public class FuzzyNetwork extends Network {
         levelsList.add(hCounter, ((FuzzyLevel) standartLevel).copy(hCounter));
         return levelsList.get(hCounter);
     }
-
-    /* @Override
-     public void apprendreDictionnaire(int n, int taille) {
-     ResultSet rs;
-     String mot;
-     DB bd = new DB();
-     bd.open();
-     if (taille == -1) {
-     rs = bd.result("SELECT `nomlemme` FROM lemme WHERE LENGTH(CONVERT(nomlemme USING latin1))<=" + hMax + " ORDER BY RAND();");
-     } else {
-     rs = bd.result("SELECT `nomlemme` FROM lemme WHERE LENGTH(CONVERT(nomlemme USING latin1))=" + taille + " ORDER BY RAND();");
-     // rs=bd.result("SELECT `nomlemme` FROM lemme WHERE LENGTH(CONVERT(nomlemme USING latin1))="+taille+" ORDER BY nomlemme;");
-     }
-     int c = 0;
-     numDoubleLettre = 0;
-     numDoubleLettreNon = 0;
-     try {
-     while (rs.next() && c < n) {
-
-     // // On active les caractères délimiteurs
-     //if(Reseau.CARAC_DELIM){
-     //	motsAppris.addLast("<"+rs.getString("nomlemme")+">");
-     //}
-     //else
-     //}
-     // Récupération du mot à apprendre
-     mot = rs.getString("nomlemme");
-     motsAppris.addLast(mot);
-
-     // On active les caractères délimiteurs
-     if (ReseauFlous.CARAC_DELIM) {
-     mot = "<" + mot + ">";
-     }
-     int taille_mot = mot.length();
-     if (TypoMultireseaux.plusieursLettres) {
-     for (int i = 0; i < ReseauFlous.NOMBRE_FANAUX_PAR_CLIQUE - taille_mot; i++) {
-     mot = mot + "#";
-     }
-     }
-
-     if (!isDoubleLettre(mot)) {
-     if (isDoubleLettreNonCons(mot)) {
-     numDoubleLettreNon = numDoubleLettreNon + 1.0;
-     if (ReseauFlous.AVEC_DOUBLE_LETTRES_NON_CONSEC) {
-     this.apprendreMot(mot);
-     c++;
-     } else {
-     // On apprend mais on ne l'utilise pas pour le decodage
-     this.apprendreMot(mot);
-     c++;
-     motsAppris.removeLast();
-     }
-     } else {
-     this.apprendreMot(mot);
-     c++;
-     }
-     } else {
-     numDoubleLettreNon = numDoubleLettreNon + 1.0;
-     numDoubleLettre = numDoubleLettre + 1.0;
-     if (ReseauFlous.AVEC_DOUBLE_LETTRES) {
-     this.apprendreMot(mot);
-     c++;
-     } else {
-     // On apprend mais on ne l'utilise pas pour le decodage
-     this.apprendreMot(mot);
-     motsAppris.removeLast();
-     }
-
-     }
-     if (ReseauFlous.MITOSE_FANAUX) {
-     // Réalisation de la mitose si besoin
-     realiserMitose();
-     }
-     if (c % 1000 == 0) {
-     TypoMultireseaux.logger.info(c + " mots appris...");
-     }
-     }
-     if (c < (n - 1)) {
-     TypoMultireseaux.logger.warn("Warning: Pas assez de mots dans la base de données (" + c + " au lieu de " + n + ")");
-     }
-     } catch (SQLException ex) {
-     Logger.getLogger(ReseauFlous.class.getName()).log(Level.SEVERE, null, ex);
-     }
-
-     } */
+    
     public Decoder getDecodeur() {
         return this.decoder;
     }
@@ -331,7 +248,7 @@ public class FuzzyNetwork extends Network {
             // récupération du dernier fanal crée dans mf
             f = mf.getListFanaux().getLast();
             // Si le dernier fanal créé dans le macrofanal est saturé, on crée un nouveau fanal dans le macrofanal
-            if (f.getInDegree() >= FuzzyNetwork.THRESHOLD_DEG_MITOSE) {
+            if (f.getInDegree() >= FuzzyNetwork.THRESHOLD_DEG_MITOSIS) {
                 // Creer un nouveau sommet
                 FuzzyFanal fNew = new FuzzyFanal(f, 0);
                 // Rennomer le fanal

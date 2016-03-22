@@ -1,9 +1,6 @@
 package control.decoder;
 
-import control.network.FuzzyNetwork;
-import java.util.HashMap;
 import java.util.LinkedList;
-import model.Cluster;
 import model.Fanal;
 
 public abstract class Decoder {
