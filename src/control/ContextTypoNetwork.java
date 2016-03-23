@@ -187,7 +187,7 @@ public class ContextTypoNetwork {
                 }
                 
                 HashMap<Integer, List<String>> trainInput = new HashMap<>(FileIO.readSplittedFile(train_file));
-                controlNetwork.learningPhase(trainInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
+                controlNetwork.learningWordsPhase(trainInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
                 
                 ContextTypoNetwork.logger.debug("Apprentissage OK! ");
                 

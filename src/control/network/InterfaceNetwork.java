@@ -109,6 +109,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         this.multimodalNetworks.add(indiceReseau, r);
         this.typeNetworks.add(indiceReseau, typeReseau);
     }
+    
 
     @Override
     public Clique learnWord(String word) {

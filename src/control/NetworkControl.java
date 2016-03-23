@@ -195,12 +195,18 @@ public class NetworkControl implements LetterInformation {
         matchingRate = matchingRate / samples;
         errorRate = ((double) error) / samples;
     }
+    
+    
 
     public String getPhoneme(String word) {
         return this.wordsPhonemesMap.get(word);
     }
+    
+    public void learnSentencesPhase(String sentence){
+        
+    }
 
-    public void learningPhase(List<String> trainingWordsList, List<String> trainingPhonsList) {
+    public void learningWordsPhase(List<String> trainingWordsList, List<String> trainingPhonsList) {
         String word;
         //Verificar que as duas listas tem  o mesmo tamanho
         for (int i = 0; i < trainingWordsList.size(); i++) {
