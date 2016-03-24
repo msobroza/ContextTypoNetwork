@@ -10,30 +10,59 @@ package config;
  * @author msobroza
  */
 public class ConfigFile {
-    
-    
+
     public enum TestWords {
-        
-        WORDS(0), ERRORS(1), ERRORS_PHONS(2);
+
+        WORD(0), ERROR(1), ERROR_PHON(2);
         private final int index;
+
         TestWords(int index) {
-            this.index=index;
+            this.index = index;
         }
-        
-        public int getIndex(){
+
+        public int getIndex() {
             return this.index;
         }
     }
-    
-    public enum TrainWords {
-        
-        WORDS(0),PHONS(1);
+
+    public enum TestSentences {
+
+        ORIGINAL_SENTENCE(0), ERROR_SENTENCE(1), WORD(2), ERROR(3), ERROR_PHON(4);
         private final int index;
-        TrainWords(int index) {
-            this.index=index;
+
+        TestSentences(int index) {
+            this.index = index;
         }
-        
-        public int getIndex(){
+
+        public int getIndex() {
+            return this.index;
+        }
+    }
+
+    public enum TrainWords {
+
+        WORDS(0), PHONS(1);
+        private final int index;
+
+        TrainWords(int index) {
+            this.index = index;
+        }
+
+        public int getIndex() {
+            return this.index;
+        }
+    }
+
+    public enum TrainSentences {
+
+        ORIGINAL_SENTENCE(0), NORMALIZED_SENTENCE(1);
+        private final int index;
+
+        TrainSentences(int index) {
+            this.index = index;
+        }
+
+        public int getIndex() {
             return this.index;
         }
     }

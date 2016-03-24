@@ -21,6 +21,7 @@ public interface LetterInformation {
     public static String SPECIAL_SYMBOL = "#";
     public static String ERASURE_SYMBOL = "_";
     public static String UNKNOWN_WORD_SYMBOLS = "##";
+    public static String CONCAT_SYMBOL="|||";
     public static int NB_CAS = 20;
     
 

@@ -1,5 +1,6 @@
 package control;
 
+import control.decoder.VirtualWordContextDecoder;
 import control.rules.LetterInformation;
 import control.rules.PhonemeRules;
 import control.network.InterfaceNetwork;
@@ -8,13 +9,16 @@ import control.network.FuzzyNetwork;
 import control.network.TriangularNetwork;
 import control.network.VirtualNetwork;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import model.Fanal;
+import org.apache.thrift.TException;
 import tools.interface_cuda.CUDAContextInterface;
+import tools.tokenizer.FrenchTokenizer;
 
 public class NetworkControl implements LetterInformation {
 
@@ -53,6 +57,7 @@ public class NetworkControl implements LetterInformation {
 
     private final LinkedList<Network> multimodalNetworks;
     private final LinkedList<String> storedWords;
+    private final LinkedList<String> storedSentences;
     private final LinkedList<String> learntWords;
     private final HashMap<String, String> wordsPhonemesMap;
     private double errorRate;
@@ -66,6 +71,7 @@ public class NetworkControl implements LetterInformation {
     public NetworkControl() {
         multimodalNetworks = new LinkedList<>();
         storedWords = new LinkedList<>();
+        storedSentences = new LinkedList<>();
         learntWords = new LinkedList<>();
         wordsPhonemesMap = new HashMap<>();
         errorRate = 0.0;
@@ -93,11 +99,13 @@ public class NetworkControl implements LetterInformation {
         }
     }
 
+    // This constructor is used for sentences
     public NetworkControl(CUDAContextInterface.Client virtualInterface) {
 
         this.virtualInterface = virtualInterface;
         multimodalNetworks = new LinkedList<>();
         storedWords = new LinkedList<>();
+        storedSentences = new LinkedList<>();
         learntWords = new LinkedList<>();
         wordsPhonemesMap = new HashMap<>();
         errorRate = 0.0;
@@ -124,13 +132,83 @@ public class NetworkControl implements LetterInformation {
             interfaceNetworkInstance.addNetwork(multimodalNetworks.get(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex()), IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), InterfaceNetwork.InformationContent.WORDS);
 
             if (ContextTypoNetwork.USE_CONTEXT_INFORMATION) {
-               interfaceNetworkInstance.addNetwork(multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex()), IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex(), InterfaceNetwork.InformationContent.SENTENCES);
+                interfaceNetworkInstance.addNetwork(multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex()), IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex(), InterfaceNetwork.InformationContent.SENTENCES);
             }
             if (ContextTypoNetwork.RATES_PER_NETWORK) {
                 matchingRatePerNetwork = new ArrayList<>();
                 errorRatePerNetwork = new ArrayList<>();
             }
         }
+    }
+
+    public void decoderPhase(List<String> incorrectSentencesList, List<String> correctWordList, List<String> errorWordList, List<String> errorPhonList) throws TException {
+        String word, modifiedWord, phon;
+        Double match, matchR1aux, matchR2aux, matchR1, matchR2;
+
+        matchR1 = 0.0;
+        matchR2 = 0.0;
+        int error = 0;
+        int errorR1 = 0;
+        int errorR2 = 0;
+        LinkedList<List<String>> phonemesList;
+        LinkedList<Fanal> winnersList;
+
+        List<String> sentenceWords;
+        int samples = correctWordList.size();
+        FrenchTokenizer tokenizer = new FrenchTokenizer();
+        VirtualNetwork contextNet = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
+        VirtualWordContextDecoder contextDecoder = new VirtualWordContextDecoder(contextNet);
+        List<String> activatedContextWords;
+        for (int jSamples = 0; jSamples < samples; jSamples++) {
+            // Decoding in context words network
+            sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
+            activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+            ContextTypoNetwork.logger.debug("Mots contexte: " + activatedContextWords);
+
+            word = correctWordList.get(jSamples);
+            modifiedWord = errorWordList.get(jSamples);
+            ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
+            String phonLia = errorPhonList.get(jSamples);
+            // Il convertit les règles du format Lia pour le format du lexique ou du LIA selon apprentissage
+
+            phonemesList = PhonemeRules.phonemeToListParser(phonLia);
+
+            ContextTypoNetwork.logger.debug("Phoneme entree: " + phonemesList);
+            winnersList = interfaceNetworkInstance.decoderInterfaceReseaux(BEGIN_WORD_SYMBOL + modifiedWord + END_WORD_SYMBOL, phonemesList, activatedContextWords);
+            match = interfaceNetworkInstance.getMatchingRateInterfaceNetwork(winnersList, BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL);
+            matchingRate += match;
+            if (ContextTypoNetwork.RATES_PER_NETWORK) {
+
+                phon = wordsPhonemesMap.get(word);
+
+                matchR1aux = interfaceNetworkInstance.getMatchingRateNetwork(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), BEGIN_WORD_SYMBOL + phon + END_WORD_SYMBOL);
+
+                matchR2aux = interfaceNetworkInstance.getMatchingRateNetwork(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), BEGIN_WORD_SYMBOL + word + END_WORD_SYMBOL);
+                matchR1 += matchR1aux;
+                matchR2 += matchR2aux;
+
+                if (matchR1aux < 1.0 || interfaceNetworkInstance.getWinnersFanalsNetwork(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex()).size() != ((TriangularNetwork) interfaceNetworkInstance.getNetwork(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex())).FANALS_PER_CLIQUE) {
+                    errorR1++;
+                }
+
+                if (matchR2aux < 1.0 || interfaceNetworkInstance.getWinnersFanalsNetwork(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex()).size() != ((FuzzyNetwork) interfaceNetworkInstance.getNetwork(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex())).FANALS_PER_CLIQUE) {
+                    errorR2++;
+                }
+            }
+
+            if (match < 1.0 || winnersList.size() != interfaceNetworkInstance.FANALS_PER_CLIQUE) {
+                ContextTypoNetwork.logger.debug("Erreur: " + word + " Match: " + match);
+                error++;
+            }
+        }
+        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+            this.matchingRatePerNetwork.add(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), matchR1 / samples);
+            this.matchingRatePerNetwork.add(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), matchR2 / samples);
+            this.errorRatePerNetwork.add(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), (double) errorR1 / samples);
+            this.errorRatePerNetwork.add(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), (double) errorR2 / samples);
+        }
+        matchingRate = matchingRate / samples;
+        errorRate = ((double) error) / samples;
     }
 
     public void decoderPhase(List<String> correctWordList, List<String> errorWordList, List<String> errorPhonList) {
@@ -195,20 +273,25 @@ public class NetworkControl implements LetterInformation {
         matchingRate = matchingRate / samples;
         errorRate = ((double) error) / samples;
     }
-    
-    
 
     public String getPhoneme(String word) {
         return this.wordsPhonemesMap.get(word);
     }
-    
-    public void learnSentencesPhase(String sentence){
-        
+
+    public void learningSentencesPhase(List<String> trainingSentencesList) throws TException {
+        String sentenceToken;
+        FrenchTokenizer tokenizer = new FrenchTokenizer();
+        VirtualNetwork contextNetwork = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
+        for (String sentence : trainingSentencesList) {
+            // Tokenization
+            sentenceToken = FrenchTokenizer.concatTokens(tokenizer.tokenize(sentence), CONCAT_SYMBOL);
+            storedSentences.add(sentenceToken);
+        }
+        contextNetwork.learnWordSequences(1, storedSentences);
     }
 
     public void learningWordsPhase(List<String> trainingWordsList, List<String> trainingPhonsList) {
         String word;
-        //Verificar que as duas listas tem  o mesmo tamanho
         for (int i = 0; i < trainingWordsList.size(); i++) {
             word = trainingWordsList.get(i);
             storedWords.add(word);

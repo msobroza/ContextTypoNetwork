@@ -10,8 +10,10 @@ import graph.FuzzyGraph;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import model.Clique;
 import model.Cluster;
+import model.Fanal;
 import model.FuzzyFanal;
 import model.MacroFanal;
 
@@ -190,7 +192,7 @@ public class FuzzyNetwork extends Network {
         levelsList.add(hCounter, ((FuzzyLevel) standartLevel).copy(hCounter));
         return levelsList.get(hCounter);
     }
-    
+
     public Decoder getDecodeur() {
         return this.decoder;
     }
@@ -206,9 +208,9 @@ public class FuzzyNetwork extends Network {
     public Clique learnWord(String mot) {
         FuzzyLevel n = (FuzzyLevel) this.getLevelsList().get(0);
         if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
-            int taille = mot.length();
-            for (int i = 0; i < this.NUMBER_CLUSTERS - taille; i++) {
-                mot = mot + "*";
+            int size = mot.length();
+            for (int i = 0; i < this.NUMBER_CLUSTERS - size; i++) {
+                mot = mot + PADDING_SYMBOL;
             }
         }
         if (n.existsClique(mot)) {
@@ -220,6 +222,19 @@ public class FuzzyNetwork extends Network {
             n.addCircularAnticipation(mot, false);
         }
         return n.getWordClique(mot);
+    }
+
+    public List<Fanal> getWordFanals(String wordContext) {
+        FuzzyLevel n = (FuzzyLevel) this.getLevelsList().get(0);
+        List<Fanal> result = new ArrayList<>();
+        String wordFuzzy = BEGIN_WORD_SYMBOL + wordContext + END_WORD_SYMBOL;
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+            int size = wordFuzzy.length();
+            for (int i = 0; i < this.NUMBER_CLUSTERS - size; i++) {
+                wordFuzzy = wordFuzzy + PADDING_SYMBOL;
+            }
+        }
+        return n.getCliqueWordFuzzy(wordFuzzy).getFanalsList();
     }
 
     @Override

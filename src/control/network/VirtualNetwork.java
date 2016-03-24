@@ -55,16 +55,16 @@ public class VirtualNetwork extends Network {
         createCliquesLevel(CONFIG_NET_FILES.MAIN.toString(), nwords);
         int mainIdLevel = mapNwordsMainLevel.get(nwords).getH();
         for (int r = 1; r < configFiles.size(); r++) {
-            createSequenceLevel(this.configFiles.get(r).toString(), r, mainIdLevel);
+            createSequenceLevel(this.configFiles.get(r).toString(), nwords, r, mainIdLevel);
         }
     }
 
     private void initConfigNetworksFiles() {
         this.configFiles.add(CONFIG_NET_FILES.MAIN);
         this.configFiles.add(CONFIG_NET_FILES.R1);
-        this.configFiles.add(CONFIG_NET_FILES.R2);
-        this.configFiles.add(CONFIG_NET_FILES.R3);
-        this.configFiles.add(CONFIG_NET_FILES.R4);
+        //this.configFiles.add(CONFIG_NET_FILES.R2);
+        //this.configFiles.add(CONFIG_NET_FILES.R3);
+        //this.configFiles.add(CONFIG_NET_FILES.R4);
     }
 
     public CUDAContextInterface.Client getVirtualInterface() {
@@ -80,9 +80,9 @@ public class VirtualNetwork extends Network {
         return l;
     }
 
-    public Level createSequenceLevel(String configFile, int anticipationDistance, int mainIdLevel) throws TException {
+    public Level createSequenceLevel(String configFile, int nwords, int anticipationDistance, int mainIdLevel) throws TException {
         this.hCounter++;
-        VirtualLevelTournamentChain l = new VirtualLevelTournamentChain(hCounter, anticipationDistance);
+        VirtualLevelTournamentChain l = new VirtualLevelTournamentChain(hCounter, mapNwordsMainLevel.get(nwords).getH(), anticipationDistance);
         this.virtualInterface.createContextNetwork(l.h, configFile);
         this.levelsList.add(l.getH(), l);
         VirtualLevelCliques mainLayer = (VirtualLevelCliques) this.levelsList.get(mainIdLevel);
@@ -122,8 +122,15 @@ public class VirtualNetwork extends Network {
         return true;
     }
 
-    public boolean learnWordSequences(List<ContextNetwork> listNetworks, List<String> words) throws TException {
-        return this.virtualInterface.learnCompleteSequeces(null, words) == 0;
+    public boolean learnWordSequences(int nwords, List<String> sentences) throws TException {
+        VirtualLevelCliques mainLevel = mapNwordsMainLevel.get(nwords);
+        List<VirtualLevelTournamentChain> sequencesLevelsList = new ArrayList<>(mapMainLevelDoubleLayers.get(mainLevel));
+        List<ContextNetwork> contextList = new ArrayList<>();
+        for (VirtualLevelTournamentChain l : sequencesLevelsList) {
+            contextList.add(new ContextNetwork(l.getH(), mainLevel.getH(), l.anticipationDistance()));
+        }
+        ContextNetwork c = new ContextNetwork();
+        return this.virtualInterface.learnCompleteSequences(contextList, sentences) == 0;
     }
 
     @Override

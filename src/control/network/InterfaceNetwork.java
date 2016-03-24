@@ -175,6 +175,96 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
             return cliqueInterface;
         }
     }
+    
+    public LinkedList<Fanal> decoderInterfaceReseaux(String modifiedWord, LinkedList<List<String>> phonemes, List<String> activatedContextWords) {
+        HashSet<Fanal> triangularFanalsSet = new HashSet<>();
+        HashSet<Fanal> fuzzyFanalsSet = new HashSet<>();
+        LinkedList<Fanal> fuzzyFanalsList = new LinkedList<>();
+        LinkedList<Fanal> triangularFanalsList = new LinkedList<>();
+        LinkedList<Fanal> inferiorFanalsList = new LinkedList<>();
+        TriangularNetwork triangularNetwork;
+        FuzzyNetwork fuzzyRightNetwork;
+        TriangularDecoder triangularDecoder;
+        FuzzyDecoder fuzzyDecoder;
+        String fuzzyWord;
+        // ---- Flous de mots -------
+        fuzzyRightNetwork = (FuzzyNetwork) multimodalNetworks.get(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex());
+        // Il prend le decodeur du Reseau Flous
+        fuzzyDecoder = (FuzzyDecoder) (fuzzyRightNetwork).getDecodeur();
+        // Ajoute postambule dans le mot (information de non information)
+        
+        if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
+            int taille = modifiedWord.length();
+            for (int i = 0; i < fuzzyRightNetwork.NUMBER_CLUSTERS - taille; i++) {
+                modifiedWord = modifiedWord + PADDING_SYMBOL;
+            }
+        }
+        if (modifiedWord.length() < fuzzyRightNetwork.NUMBER_CLUSTERS) {
+
+            fuzzyWord = BEGIN_WORD_SYMBOL + NetworkControl.insertLetter(modifiedWord.substring(1, modifiedWord.length() - 1), ERASURE_SYMBOL, fuzzyRightNetwork.NUMBER_CLUSTERS - modifiedWord.length()) + END_WORD_SYMBOL;
+            // Il réalise la propagation et decodage (0 est la fênetre initialle)
+            fuzzyDecoder.recognizePatternBottomUpDecoding(fuzzyWord, 0, false, 0);
+            // Il obtient les fanaux gagnants du decodage flous
+            for (LinkedList<Fanal> lst : fuzzyDecoder.getWinnersPatternsFuzzyDecoding(fuzzyWord)) {
+                fuzzyFanalsList.addAll(lst);
+            }
+        } else {
+            // Il réalise la propagation et decodage
+            fuzzyDecoder.recognizePatternBottomUpDecoding(modifiedWord, 0, false, 0);
+            // Il obtient les fanaux gagnants du decodage flous
+            for (LinkedList<Fanal> lst : fuzzyDecoder.getWinnersPatternsFuzzyDecoding(modifiedWord)) {
+                fuzzyFanalsList.addAll(lst);
+            }
+        }
+        fuzzyFanalsSet.addAll(fuzzyFanalsList);
+        
+        HashSet<Fanal> listFanalsContext= new HashSet<>();
+        if(ContextTypoNetwork.USE_CONTEXT_INFORMATION){
+            for(String wordContext:activatedContextWords){
+                listFanalsContext.addAll(fuzzyRightNetwork.getWordFanals(wordContext));
+            }
+        }
+    
+        LinkedList<Fanal> lstAux = new LinkedList<>();
+        
+        lstAux.addAll(listFanalsContext);
+        lstAux.addAll(fuzzyFanalsList);
+        InterfaceNetwork.this.activateLateralConnections(lstAux, ActivationType.ACTIVATION_TO_LEFT_SIDE.getValue());
+        // Si il y a un reseau triangulaire de phonemes
+        triangularNetwork = (TriangularNetwork) multimodalNetworks.get(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex());
+        // Il prend le decodeur du Reseau Triangulaire
+        triangularDecoder = (TriangularDecoder) (triangularNetwork.getDecoder());
+        triangularFanalsList.addAll(triangularDecoder.getWinnersTwoLevelsJumpDecoding(phonemes));
+        triangularFanalsSet.addAll(triangularFanalsList);
+
+        // Ajoute la liste de gagnants des reseaux
+        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+            this.decodedFanals.set(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), fuzzyFanalsSet);
+            ContextTypoNetwork.logger.warn("#Flous Mots # " + this.decodedFanals.get(NetworkControl.IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex()).size());
+
+            this.decodedFanals.set(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), triangularFanalsSet);
+            ContextTypoNetwork.logger.warn("#Triang # " + this.decodedFanals.get(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex()).size());
+
+        }
+
+        if (TriangularDecoder.UNION_BOOSTING) {
+            inferiorFanalsList.addAll(triangularFanalsSet);
+        } else {
+            inferiorFanalsList.addAll(triangularFanalsList);
+        }
+
+        inferiorFanalsList.addAll(fuzzyFanalsSet);
+
+        ContextTypoNetwork.logger.debug("Nombre fanaux avant propagation :" + inferiorFanalsList.size());
+        if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
+            // À chaque recherche de mot on redemarre les activations laterales
+            resetLateralPropagation();
+        }
+
+        return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceNetwork(inferiorFanalsList);
+    }
+    
+    
 
     public LinkedList<Fanal> decoderInterfaceReseaux(String modifiedWord, LinkedList<List<String>> phonemes) {
         HashSet<Fanal> triangularFanalsSet = new HashSet<>();
@@ -248,7 +338,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         ContextTypoNetwork.logger.debug("Nombre fanaux avant propagation :" + inferiorFanalsList.size());
         if (NetworkControl.ACTIVATE_LATERAL_CONNECTIONS) {
             // À chaque recherche de mot on redemarre les activations laterales
-            remiseZeroPropagationLaterale();
+            resetLateralPropagation();
         }
 
         return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceNetwork(inferiorFanalsList);
@@ -337,7 +427,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         return this.multimodalNetworks.get(indiceReseau);
     }
 
-    private void remiseZeroPropagationLaterale() {
+    private void resetLateralPropagation() {
         fanalScoreMap = new HashMap<>();
     }
 
