@@ -31,9 +31,9 @@ public class InterfaceSender {
         this.transport=null;
     } 
     
-    public void openConnection(){
-            this.transport = new TSocket(this.serverAdd, this.serverPort);
+    public void openConnection(){     
         try {
+            this.transport = new TSocket(this.serverAdd, this.serverPort);
             this.transport.open();
         } catch (TTransportException ex) {
             Logger.getLogger(InterfaceSender.class.getName()).log(Level.SEVERE, null, ex);

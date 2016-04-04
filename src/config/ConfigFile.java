@@ -27,7 +27,7 @@ public class ConfigFile {
 
     public enum TestSentences {
 
-        ORIGINAL_SENTENCE(0), ERROR_SENTENCE(1), WORD(2), ERROR(3), ERROR_PHON(4);
+        ORIGINAL_SENTENCE(0), ERROR_SENTENCE(1), WORD(2), ERROR_WORD(3), ERROR_PHON(4);
         private final int index;
 
         TestSentences(int index) {

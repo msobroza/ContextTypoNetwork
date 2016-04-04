@@ -33,7 +33,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
             relativePositions.addAll(getRelativePositionList(sentence, unknownWordPos));
         }
         VirtualLevelCliques mainCliquesLevel = net.getMainLevel(1);
-        List<VirtualLevelTournamentChain> doubleLayers = net.getLayerFromMain(mainCliquesLevel);
+        List<VirtualLevelTournamentChain> doubleLayers = net.getLayersFromMain(mainCliquesLevel);
         List<VirtualLevelTournamentChain> activationLayers = new ArrayList<>();
         List<Integer> orientationList = new ArrayList<>();
         List<String> activationWords = new ArrayList<>();
@@ -44,7 +44,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
                 for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
                     if (sequenceLayer.anticipationDistance() == r) {
                         activationLayers.add(sequenceLayer);
-                        if (relativePositions.get(i) > 1) {
+                        if (relativePositions.get(i) > 0) {
                             orientationList.add(1);
                         } else {
                             orientationList.add(-1);
@@ -64,7 +64,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     public static List<Integer> getRelativePositionList(List<String> sentence, int position) {
         List<Integer> result = new ArrayList<>();
         for (int i = 0; i < sentence.size(); i++) {
-            result.add(position - 1);
+            result.add(position - i);
         }
         return result;
     }

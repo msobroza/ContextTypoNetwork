@@ -175,7 +175,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
             return cliqueInterface;
         }
     }
-    
+
     public LinkedList<Fanal> decoderInterfaceReseaux(String modifiedWord, LinkedList<List<String>> phonemes, List<String> activatedContextWords) {
         HashSet<Fanal> triangularFanalsSet = new HashSet<>();
         HashSet<Fanal> fuzzyFanalsSet = new HashSet<>();
@@ -192,7 +192,7 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
         // Il prend le decodeur du Reseau Flous
         fuzzyDecoder = (FuzzyDecoder) (fuzzyRightNetwork).getDecodeur();
         // Ajoute postambule dans le mot (information de non information)
-        
+
         if (ContextTypoNetwork.VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT) {
             int taille = modifiedWord.length();
             for (int i = 0; i < fuzzyRightNetwork.NUMBER_CLUSTERS - taille; i++) {
@@ -217,16 +217,21 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
             }
         }
         fuzzyFanalsSet.addAll(fuzzyFanalsList);
-        
-        HashSet<Fanal> listFanalsContext= new HashSet<>();
-        if(ContextTypoNetwork.USE_CONTEXT_INFORMATION){
-            for(String wordContext:activatedContextWords){
-                listFanalsContext.addAll(fuzzyRightNetwork.getWordFanals(wordContext));
+
+        HashSet<Fanal> listFanalsContext = new HashSet<>();
+        List<Fanal> listFanalsAux;
+        if (ContextTypoNetwork.USE_CONTEXT_INFORMATION) {
+            for (String wordContext : activatedContextWords) {
+                listFanalsAux = fuzzyRightNetwork.getWordFromContextToOrthoFanals(wordContext);
+                if (listFanalsAux != null) {
+                    listFanalsContext.addAll(listFanalsAux);
+                }
+
             }
         }
-    
+
         LinkedList<Fanal> lstAux = new LinkedList<>();
-        
+
         lstAux.addAll(listFanalsContext);
         lstAux.addAll(fuzzyFanalsList);
         InterfaceNetwork.this.activateLateralConnections(lstAux, ActivationType.ACTIVATION_TO_LEFT_SIDE.getValue());
@@ -263,8 +268,6 @@ public class InterfaceNetwork extends TriangularNetwork implements LetterInforma
 
         return ((TriangularDecoder) this.getDecoder()).getWinnersInterfaceNetwork(inferiorFanalsList);
     }
-    
-    
 
     public LinkedList<Fanal> decoderInterfaceReseaux(String modifiedWord, LinkedList<List<String>> phonemes) {
         HashSet<Fanal> triangularFanalsSet = new HashSet<>();

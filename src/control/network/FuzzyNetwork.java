@@ -224,7 +224,7 @@ public class FuzzyNetwork extends Network {
         return n.getWordClique(mot);
     }
 
-    public List<Fanal> getWordFanals(String wordContext) {
+    public List<Fanal> getWordFromContextToOrthoFanals(String wordContext) {
         FuzzyLevel n = (FuzzyLevel) this.getLevelsList().get(0);
         List<Fanal> result = new ArrayList<>();
         String wordFuzzy = BEGIN_WORD_SYMBOL + wordContext + END_WORD_SYMBOL;
@@ -234,7 +234,11 @@ public class FuzzyNetwork extends Network {
                 wordFuzzy = wordFuzzy + PADDING_SYMBOL;
             }
         }
-        return n.getCliqueWordFuzzy(wordFuzzy).getFanalsList();
+        if(n.getCliqueWordFuzzy(wordFuzzy) == null){
+            return null;
+        }else{
+            return n.getCliqueWordFuzzy(wordFuzzy).getFanalsList();
+        }
     }
 
     @Override

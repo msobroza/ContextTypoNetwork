@@ -100,7 +100,7 @@ public class NetworkControl implements LetterInformation {
     }
 
     // This constructor is used for sentences
-    public NetworkControl(CUDAContextInterface.Client virtualInterface) {
+    public NetworkControl(CUDAContextInterface.Client virtualInterface) throws TException {
 
         this.virtualInterface = virtualInterface;
         multimodalNetworks = new LinkedList<>();

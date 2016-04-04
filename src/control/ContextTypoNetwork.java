@@ -21,7 +21,7 @@ public class ContextTypoNetwork {
 
     public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
 
-    public static final int CUDA_SERVER_PORTNUMBER = 9090;
+    public static final int CUDA_SERVER_PORTNUMBER = 9697;
 
     public static int numberLetters = 7;
     // Interaction fichiers
@@ -29,11 +29,11 @@ public class ContextTypoNetwork {
     // Training file
     public static String train_words_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/words/train_words_set.pickle.7";
     // Training sentences file
-    public static String train_sentences_file = "";
+    public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set.pickle";
     // Test file
     public static String test_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-    public static String test_sentences_file = "";
+    public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
     // Use log file
     public static boolean USE_LOG_OUT_FILE = false;
     // Out file
@@ -43,7 +43,7 @@ public class ContextTypoNetwork {
     // Active taille variable reseau flou
     public static boolean VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT = false;
     // Use context information
-    public static boolean USE_CONTEXT_INFORMATION = false;
+    public static boolean USE_CONTEXT_INFORMATION = true;
 
     public static Logger logger = Logger.getRootLogger();
 
@@ -197,32 +197,32 @@ public class ContextTypoNetwork {
             seqSender.openConnection();
             CUDAContextInterface.Client client = seqSender.getCUDAContextInterfaceClient();
             controlNetwork = new NetworkControl(client);
-        } else {
-            controlNetwork = new NetworkControl();
-        }
-        // Learn words
-
-        if (!FileIO.fileExists(train_words_file)) {
-            throw new FileNotExists(train_words_file);
-        }
-        HashMap<Integer, List<String>> trainWordsInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
-        controlNetwork.learningWordsPhase(trainWordsInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainWordsInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
-        ContextTypoNetwork.logger.debug("Apprentissage de mots OK! ");
-
-        // Learn sentences
-        if (USE_CONTEXT_INFORMATION) {
+            // Learn sentences
             if (!FileIO.fileExists(train_sentences_file)) {
                 throw new FileNotExists(train_sentences_file);
             }
             HashMap<Integer, List<String>> trainSentencesInput = new HashMap<>(FileIO.readSplittedFile(train_sentences_file));
             controlNetwork.learningSentencesPhase(trainSentencesInput.get(ConfigFile.TrainSentences.NORMALIZED_SENTENCE.getIndex()));
             ContextTypoNetwork.logger.debug("Apprentissage de phrases OK! ");
+        } else {
+            controlNetwork = new NetworkControl();
+        }
+        // Learn words
+
+        /*if (!FileIO.fileExists(train_words_file)) {
+            throw new FileNotExists(train_words_file);
+        }
+        HashMap<Integer, List<String>> trainWordsInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
+        controlNetwork.learningWordsPhase(trainWordsInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainWordsInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
+        ContextTypoNetwork.logger.debug("Apprentissage de mots OK! ");*/
+
+        if (USE_CONTEXT_INFORMATION) {
             // It verifies the test file exists
             if (!FileIO.fileExists(test_sentences_file)) {
                 throw new FileNotExists(test_sentences_file);
             }
             HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_sentences_file));
-            controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_PHON.getIndex()));
+            controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_PHON.getIndex()));
         } else {
             // It verifies the test file exists
             if (!FileIO.fileExists(test_file)) {

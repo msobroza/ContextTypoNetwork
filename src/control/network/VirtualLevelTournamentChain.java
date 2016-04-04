@@ -19,6 +19,7 @@ public class VirtualLevelTournamentChain extends VirtualLevel {
     public VirtualLevelTournamentChain(int idLevel, int idMainLevel, int anticipationDistance) {
         this.virtualSequencesNetwork = new ContextNetwork(idLevel, idMainLevel, anticipationDistance);
         this.virtualLevelType = TypeNetwork.RANDOM_SEQUENCES_NETWORK;
+        this.h=idLevel;
     }
     
     public ContextNetwork getVirtualSequencesNetwork(){

@@ -43,11 +43,11 @@ public class FrenchTokenizer implements Tokenizer {
         for(String s:tokens){
             result=result+s+concat_symbol;
         }
-        result=result.substring(0, result.length()-1);
         return result;
     }
     
         
+    @Override
     public String[] tokenizeSimpleSplit(String sentence){
         return sentence.split(" ");
     }
