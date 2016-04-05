@@ -29,11 +29,13 @@ public class ContextTypoNetwork {
     // Training file
     public static String train_words_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/words/train_words_set.pickle.7";
     // Training sentences file
-    public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set.pickle";
+   // public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set.pickle";
+    public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_small.pickle";
     // Test file
     public static String test_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-    public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
+    public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_small.pickle";
+    //public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
     // Use log file
     public static boolean USE_LOG_OUT_FILE = false;
     // Out file
