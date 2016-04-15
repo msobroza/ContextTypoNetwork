@@ -85,6 +85,8 @@ public final class VirtualNetwork extends Network {
     public Level createCliquesLevel(String configFile, int nwords) throws TException {
         this.hCounter++;
         VirtualLevelCliques l = new VirtualLevelCliques(hCounter);
+         System.out.println("Virtual level cliques criando... "+hCounter);
+         System.out.println("l: "+l.h+" config file: "+configFile);
         this.levelsList.add(l.getH(), l);
         this.virtualInterface.createContextNetwork(l.getH(), configFile);
         this.mapNwordsMainLevel.put(nwords, l);

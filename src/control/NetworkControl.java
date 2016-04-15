@@ -163,10 +163,22 @@ public class NetworkControl implements LetterInformation {
             // Decoding in context words network
             sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
             activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
-            ContextTypoNetwork.logger.debug("Mots contexte: " + activatedContextWords);
-
+           
+            
+            
             word = correctWordList.get(jSamples);
             modifiedWord = errorWordList.get(jSamples);
+             ContextTypoNetwork.logger.debug("Mot cherchée: "+word+"; Mots contexte: " + activatedContextWords);
+            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK){
+                if(activatedContextWords.size()!=1){
+                    error++;
+                }else{
+                    if(!activatedContextWords.get(0).equals(word)){
+                        error++;
+                    }
+                }
+                continue;
+            }
             ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
             String phonLia = errorPhonList.get(jSamples);
             // Il convertit les règles du format Lia pour le format du lexique ou du LIA selon apprentissage
@@ -201,7 +213,7 @@ public class NetworkControl implements LetterInformation {
                 error++;
             }
         }
-        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+        if (ContextTypoNetwork.RATES_PER_NETWORK && !ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
             this.matchingRatePerNetwork.add(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), matchR1 / samples);
             this.matchingRatePerNetwork.add(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), matchR2 / samples);
             this.errorRatePerNetwork.add(IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex(), (double) errorR1 / samples);
