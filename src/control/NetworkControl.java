@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import model.Fanal;
 import org.apache.thrift.TException;
 import tools.interface_cuda.CUDAContextInterface;
@@ -159,16 +160,40 @@ public class NetworkControl implements LetterInformation {
         VirtualNetwork contextNet = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
         VirtualWordContextDecoder contextDecoder = new VirtualWordContextDecoder(contextNet);
         List<String> activatedContextWords;
+        
+        boolean exit = false;
+        Scanner reader = new Scanner(System.in);
+        while(!exit){
+            System.out.println("Insert phrase:");
+            String text = reader.nextLine();
+            if(text.equals("q")){
+                exit = true;
+                break;
+            } else {
+                    sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(text)));
+                    ContextTypoNetwork.logger.debug("Phrase: " + sentenceWords);
+
+                    activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+
+                    ContextTypoNetwork.logger.debug(""
+                            + "Mots contexte: " + activatedContextWords);
+            }
+        }
+        
+        
         for (int jSamples = 0; jSamples < samples; jSamples++) {
             // Decoding in context words network
             sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
+            ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
+
             activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
            
             
-            
+           
             word = correctWordList.get(jSamples);
             modifiedWord = errorWordList.get(jSamples);
-             ContextTypoNetwork.logger.debug("Mot cherchée: "+word+"; Mots contexte: " + activatedContextWords);
+            ContextTypoNetwork.logger.debug("Mot cherchée: "+word+"; "
+                     + "Found "+activatedContextWords.contains(word)+"; Mots contexte: " + activatedContextWords);
             if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK){
                 if(activatedContextWords.size()!=1){
                     error++;
