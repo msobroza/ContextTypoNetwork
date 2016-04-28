@@ -12,5 +12,5 @@ package tools.tokenizer;
 public interface Tokenizer {
      public abstract String[] tokenize(String sentence);
      
-     public abstract String[] tokenizeSimpleSplit(String sentence);
+     public abstract String[] tokenizeSimpleSplit(String sentence, String concatSymbol);
 }

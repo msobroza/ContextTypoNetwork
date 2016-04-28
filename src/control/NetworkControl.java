@@ -1,5 +1,6 @@
 package control;
 
+import static control.ContextTypoNetwork.TEST_SENTENCES_TOKENISED;
 import control.decoder.VirtualWordContextDecoder;
 import control.rules.LetterInformation;
 import control.rules.PhonemeRules;
@@ -160,46 +161,51 @@ public class NetworkControl implements LetterInformation {
         VirtualNetwork contextNet = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
         VirtualWordContextDecoder contextDecoder = new VirtualWordContextDecoder(contextNet);
         List<String> activatedContextWords;
-        
-        boolean exit = false;
-        Scanner reader = new Scanner(System.in);
-        while(!exit){
-            System.out.println("Insert phrase:");
-            String text = reader.nextLine();
-            if(text.equals("q")){
-                exit = true;
-                break;
-            } else {
-                    sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(text)));
-                    ContextTypoNetwork.logger.debug("Phrase: " + sentenceWords);
 
-                    activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+        /* boolean exit = false;
+         Scanner reader = new Scanner(System.in);
+         while(!exit){
+         System.out.println("Insert phrase:");
+         String text = reader.nextLine();
+         if(text.equals("q")){
+         exit = true;
+         break;
+         } else {
+         sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(text)));
+         ContextTypoNetwork.logger.debug("Phrase: " + sentenceWords);
 
-                    ContextTypoNetwork.logger.debug(""
-                            + "Mots contexte: " + activatedContextWords);
-            }
-        }
-        
-        
+         activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+
+         ContextTypoNetwork.logger.debug(""
+         + "Mots contexte: " + activatedContextWords);
+         }
+         } */
         for (int jSamples = 0; jSamples < samples; jSamples++) {
             // Decoding in context words network
-            sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
+            if (TEST_SENTENCES_TOKENISED) {
+                sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenizeSimpleSplit(incorrectSentencesList.get(jSamples), REGEX_CONCAT_SYMBOL)));
+            } else {
+                sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
+            }
             ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
 
             activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
-           
-            
-           
+
             word = correctWordList.get(jSamples);
             modifiedWord = errorWordList.get(jSamples);
-            ContextTypoNetwork.logger.debug("Mot cherchée: "+word+"; "
-                     + "Found "+activatedContextWords.contains(word)+"; Mots contexte: " + activatedContextWords);
-            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK){
-                if(activatedContextWords.size()!=1){
+            ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
+                    + "Found " + activatedContextWords.contains(word) + "; Mots contexte: " + activatedContextWords);
+            if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
+                if (activatedContextWords.size() != 1) {
                     error++;
-                }else{
-                    if(!activatedContextWords.get(0).equals(word)){
+                    if (activatedContextWords.contains(word)) {
+                        matchingRate += 1.0;
+                    }
+                } else {
+                    if (!activatedContextWords.get(0).equals(word)) {
                         error++;
+                    } else {
+                        matchingRate += 1.0;
                     }
                 }
                 continue;
@@ -321,7 +327,13 @@ public class NetworkControl implements LetterInformation {
         VirtualNetwork contextNetwork = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
         for (String sentence : trainingSentencesList) {
             // Tokenization
-            sentenceToken = FrenchTokenizer.concatTokens(tokenizer.tokenize(sentence), CONCAT_SYMBOL);
+            // It is already tokenised
+            if (sentence.contains(CONCAT_SYMBOL)) {
+                sentenceToken = sentence;
+            } else {
+                sentenceToken = FrenchTokenizer.reverseToken(tokenizer.tokenize(sentence), CONCAT_SYMBOL);
+            }
+
             storedSentences.add(sentenceToken);
         }
         contextNetwork.learnWordSequences(1, storedSentences);

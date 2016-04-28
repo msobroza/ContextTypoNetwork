@@ -21,7 +21,7 @@ public class ContextTypoNetwork {
 
     public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
 
-    public static final int CUDA_SERVER_PORTNUMBER = 9697;
+    public static final int CUDA_SERVER_PORTNUMBER = 9698;
 
     public static int numberLetters = 7;
     // Interaction fichiers
@@ -29,21 +29,22 @@ public class ContextTypoNetwork {
     // Training file
     public static String train_words_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/words/train_words_set.pickle.7";
     // Training sentences file
-    public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set_sarney.pickle";
+    //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set_sarney.pickle";
     //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set_complete.pickle";
     //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set.pickle";
-    //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_small.pickle";
+    public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_small.pickle";
     // Test file
     public static String test_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-    //public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_small.pickle";
-    public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
+    public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_small.pickle";
+    //public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
+    public static boolean TEST_SENTENCES_TOKENISED = true;
     // Use log file
     public static boolean USE_LOG_OUT_FILE = false;
     // Out file
     public static String out_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/out.log";
     // Taux de matching par reseau
-    public static boolean RATES_PER_NETWORK = true;
+    public static boolean RATES_PER_NETWORK = false;
     // Active taille variable reseau flou
     public static boolean VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT = false;
     // Use context information
@@ -216,12 +217,11 @@ public class ContextTypoNetwork {
         // Learn words
 
         /*if (!FileIO.fileExists(train_words_file)) {
-            throw new FileNotExists(train_words_file);
-        }
-        HashMap<Integer, List<String>> trainWordsInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
-        controlNetwork.learningWordsPhase(trainWordsInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainWordsInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
-        ContextTypoNetwork.logger.debug("Apprentissage de mots OK! ");*/
-
+         throw new FileNotExists(train_words_file);
+         }
+         HashMap<Integer, List<String>> trainWordsInput = new HashMap<>(FileIO.readSplittedFile(train_words_file));
+         controlNetwork.learningWordsPhase(trainWordsInput.get(ConfigFile.TrainWords.WORDS.getIndex()), trainWordsInput.get(ConfigFile.TrainWords.PHONS.getIndex()));
+         ContextTypoNetwork.logger.debug("Apprentissage de mots OK! ");*/
         if (USE_CONTEXT_INFORMATION) {
             // It verifies the test file exists
             if (!FileIO.fileExists(test_sentences_file)) {
@@ -241,7 +241,7 @@ public class ContextTypoNetwork {
 
         List<String> result = new ArrayList<>();
 
-        if (ContextTypoNetwork.RATES_PER_NETWORK) {
+        if (ContextTypoNetwork.RATES_PER_NETWORK && !ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
 
             result.add("Taux matching Reseau Triang: " + controlNetwork.getMatchingRate(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex()));
             result.add("Taux d'erreur Reseau Triang: " + controlNetwork.getErrorRate(NetworkControl.IndexNetwork.LOCAL_TRIANGULAR_NETWORK_INDEX.getIndex()));

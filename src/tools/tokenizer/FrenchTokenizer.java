@@ -38,7 +38,7 @@ public class FrenchTokenizer implements Tokenizer {
         return tok;
     }
     
-    public static String concatTokens(String [] tokens, String concat_symbol){
+    public static String reverseToken(String [] tokens, String concat_symbol){
         String result="";
         for(String s:tokens){
             result=result+s+concat_symbol;
@@ -46,10 +46,9 @@ public class FrenchTokenizer implements Tokenizer {
         return result;
     }
     
-        
     @Override
-    public String[] tokenizeSimpleSplit(String sentence){
-        return sentence.split(" ");
+    public String[] tokenizeSimpleSplit(String sentence, String concatSymbol){
+        return sentence.split(concatSymbol);
     }
     
 
