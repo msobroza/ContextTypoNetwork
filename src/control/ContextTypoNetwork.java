@@ -22,7 +22,7 @@ public class ContextTypoNetwork {
 
     public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
 
-    public static final int CUDA_SERVER_PORTNUMBER = 9697;
+    public static final int CUDA_SERVER_PORTNUMBER = 9698;
 
     public static int numberLetters = 7;
     // Interaction fichiers
