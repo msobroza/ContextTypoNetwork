@@ -30,15 +30,17 @@ public class ContextTypoNetwork {
     // Training file
     public static String train_words_file = "./corpus/training/words/train_words_set.pickle.7";
     // Training sentences file
-    //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set_sarney.pickle";
-    public static String train_sentences_file = "./corpus/training/sequences/train_sequences_set_complete.pickle";
-    //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_set.pickle";
-    //public static String train_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/training/sequences/train_sequences_small.pickle";
+    //public static String train_sentences_file = "./corpus/training/sequences/train_sequences_set_sarney.pickle";
+    //public static String train_sentences_file = "./corpus/training/sequences/train_sequences_set_complete.pickle";
+    //public static String train_sentences_file = "./corpus/training/sequences/train_sequences_set.pickle";
+    public static String train_sentences_file = "./corpus/training/sequences/train_msr.pickle";
+    //public static String train_sentences_file = "./corpus/training/sequences/train_sequences_small.pickle";
     // Test file
     public static String test_file = "./corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-    //public static String test_sentences_file = "/home/msobroza/NetBeansProjects/ContextTypoNetwork/corpus/test/sequences/test_sequences_small.pickle";
-    public static String test_sentences_file = "./corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
+     public static String test_sentences_file = "./corpus/test/words/test_msr.pickle";
+    //public static String test_sentences_file = "./corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
+    
     public static boolean TEST_SENTENCES_TOKENISED = true;
     // Use log file
     public static boolean USE_LOG_OUT_FILE = false;
@@ -46,7 +48,7 @@ public class ContextTypoNetwork {
     public static String out_file = "./out.log";
     // Taux de matching par reseau
     public static boolean RATES_PER_NETWORK = false;
-    // Active taille variable reseau flou
+    // Active taille variable reseau flou9
     public static boolean VARIABLE_WORDS_SIZE_FUZZY_NETWORK_RIGHT = false;
     // Use context information
     public static boolean USE_CONTEXT_INFORMATION = true;
