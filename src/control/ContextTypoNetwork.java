@@ -19,7 +19,6 @@ import tools.interface_cuda.CUDAInterfaceClientFactory;
 
 public class ContextTypoNetwork {
 
-
     public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
 
     public static final int CUDA_SERVER_PORTNUMBER = 9698;
@@ -38,9 +37,9 @@ public class ContextTypoNetwork {
     // Test file
     public static String test_file = "./corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-     public static String test_sentences_file = "./corpus/test/words/test_msr.pickle";
+    public static String test_sentences_file = "./corpus/test/words/test_msr.pickle";
     //public static String test_sentences_file = "./corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
-    
+
     public static boolean TEST_SENTENCES_TOKENISED = true;
     // Use log file
     public static boolean USE_LOG_OUT_FILE = false;
@@ -54,6 +53,8 @@ public class ContextTypoNetwork {
     public static boolean USE_CONTEXT_INFORMATION = true;
     // Test only context network
     public static boolean TEST_ONLY_CONTEXT_NETWORK = true;
+    // Test with region delimitation
+    public static boolean REGION_DELIMITATION = false;
 
     public static Logger logger = Logger.getRootLogger();
 
@@ -231,7 +232,16 @@ public class ContextTypoNetwork {
                 throw new FileNotExists(test_sentences_file);
             }
             HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_sentences_file));
-            controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_PHON.getIndex()));
+            if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
+                if (ContextTypoNetwork.REGION_DELIMITATION) {
+                     controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.POSSIBLE_WORDS.getIndex()), null);
+                } else {
+                    controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), null, null);
+                }
+            } else {
+                controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_WORD.getIndex()), testInput.get(ConfigFile.TestSentences.ERROR_PHON.getIndex()));
+            }
+
         } else {
             // It verifies the test file exists
             if (!FileIO.fileExists(test_file)) {

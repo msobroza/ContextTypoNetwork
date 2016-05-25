@@ -188,11 +188,15 @@ public class NetworkControl implements LetterInformation {
                 sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
             }
             ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
-
-            activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
-
+            
+            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.REGION_DELIMITATION){
+                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords,Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
+            }else{
+                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+            }
+            
             word = correctWordList.get(jSamples);
-            modifiedWord = errorWordList.get(jSamples);
+            
             ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
                     + "Found " + activatedContextWords.contains(word) + "; Mots contexte: " + activatedContextWords);
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
@@ -210,6 +214,7 @@ public class NetworkControl implements LetterInformation {
                 }
                 continue;
             }
+            modifiedWord = errorWordList.get(jSamples);
             ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
             String phonLia = errorPhonList.get(jSamples);
             // Il convertit les règles du format Lia pour le format du lexique ou du LIA selon apprentissage

@@ -21,6 +21,10 @@ import tools.interface_cuda.DecodingInputWordNetwork;
 public class VirtualWordContextDecoder extends Decoder implements LetterInformation {
 
     private final VirtualNetwork net;
+    public static int FUTURE_WORDS = -1;
+    public static int PAST_WORDS = 1;
+    public static int REGION_WORDS_ORIENTATION = 0;
+    public static int REGION_WORDS_NETWORK = -1;
 
     public VirtualWordContextDecoder(VirtualNetwork net) {
         this.net = net;
@@ -45,9 +49,9 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
                     if (sequenceLayer.anticipationDistance() == r) {
                         activationLayers.add(sequenceLayer);
                         if (relativePositions.get(i) > 0) {
-                            orientationList.add(1);
+                            orientationList.add(PAST_WORDS);
                         } else {
-                            orientationList.add(-1);
+                            orientationList.add(FUTURE_WORDS);
                         }
                         activationWords.add(sentence.get(i));
                     }
@@ -56,7 +60,45 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
         }
         List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
         for (int i = 0; i < activationLayers.size(); i++) {
-            decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i),activationLayers.get(i).getH(),orientationList.get(i)));
+            decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i), activationLayers.get(i).getH(), orientationList.get(i)));
+        }
+        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, mainCliquesLevel.getH());
+    }
+
+    public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList) throws TException {
+        int unknownWordPos = getFirstUnknownWord(sentence);
+        List<Integer> relativePositions = new ArrayList<>();
+        if (unknownWordPos != -1) {
+            relativePositions.addAll(getRelativePositionList(sentence, unknownWordPos));
+        }
+        VirtualLevelCliques mainCliquesLevel = net.getMainLevel(1);
+        List<VirtualLevelTournamentChain> doubleLayers = net.getLayersFromMain(mainCliquesLevel);
+        List<VirtualLevelTournamentChain> activationLayers = new ArrayList<>();
+        List<Integer> orientationList = new ArrayList<>();
+        List<String> activationWords = new ArrayList<>();
+        int r;
+        for (int i = 0; i < sentence.size(); i++) {
+            r = Math.abs(relativePositions.get(i));
+            if (r != 0 && r <= mainCliquesLevel.getMaxAnticipationDistance()) {
+                for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
+                    if (sequenceLayer.anticipationDistance() == r) {
+                        activationLayers.add(sequenceLayer);
+                        if (relativePositions.get(i) > 0) {
+                            orientationList.add(PAST_WORDS);
+                        } else {
+                            orientationList.add(FUTURE_WORDS);
+                        }
+                        activationWords.add(sentence.get(i));
+                    }
+                }
+            }
+        }
+        List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
+        for (String regionWord : regionWordsList) {
+            decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION));
+        }
+        for (int i = 0; i < activationLayers.size(); i++) {
+            decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i), activationLayers.get(i).getH(), orientationList.get(i)));
         }
         return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, mainCliquesLevel.getH());
     }
