@@ -21,7 +21,7 @@ public class ContextTypoNetwork {
 
     public static final String CUDA_SERVER_HOSTNAME = "10.29.232.217";
 
-    public static final int CUDA_SERVER_PORTNUMBER = 9698;
+    public static final int CUDA_SERVER_PORTNUMBER = 9697;
 
     public static int numberLetters = 7;
     // Interaction fichiers
@@ -37,7 +37,7 @@ public class ContextTypoNetwork {
     // Test file
     public static String test_file = "./corpus/test/words/test_words_set_ins_1.pickle.7";
     // Test sentence file
-    public static String test_sentences_file = "./corpus/test/words/test_msr.pickle";
+    public static String test_sentences_file = "./corpus/test/sequences/test_msr.pickle";
     //public static String test_sentences_file = "./corpus/test/sequences/test_sequences_errors_set_ins_1.pickle.7";
 
     public static boolean TEST_SENTENCES_TOKENISED = true;
@@ -212,7 +212,10 @@ public class ContextTypoNetwork {
             if (!FileIO.fileExists(train_sentences_file)) {
                 throw new FileNotExists(train_sentences_file);
             }
+            ContextTypoNetwork.logger.debug("Lire le training set START!");
             HashMap<Integer, List<String>> trainSentencesInput = new HashMap<>(FileIO.readSplittedFile(train_sentences_file));
+            ContextTypoNetwork.logger.debug("Lire le training set END!");
+            ContextTypoNetwork.logger.debug("Apprentissage de phrases START! ");
             controlNetwork.learningSentencesPhase(trainSentencesInput.get(ConfigFile.TrainSentences.NORMALIZED_SENTENCE.getIndex()));
             ContextTypoNetwork.logger.debug("Apprentissage de phrases OK! ");
         } else {

@@ -1,5 +1,6 @@
 package tools;
 
+import control.ContextTypoNetwork;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -31,20 +33,24 @@ public class FileIO {
         String sentence;
         String[] splitSentence;
         List<String> listColumnAux;
+        int count = 0;
         try {
             inputStream = new FileInputStream(filePath);
             sc = new Scanner(inputStream, "UTF-8");
             while (sc.hasNextLine()) {
+                count += 1;
+                if(count % 100000 == 0)
+                    ContextTypoNetwork.logger.debug("100000 more where read");
                 sentence = sc.nextLine();
                 splitSentence = sentence.split(DELIMITER);
                 for (int i = 0; i < splitSentence.length; i++) {
                     if (result.containsKey(i)) {
-                        listColumnAux = new ArrayList<>(result.get(i));
+                        listColumnAux = (LinkedList<String>) result.get(i);
                     } else {
-                        listColumnAux = new ArrayList<>();
+                        listColumnAux = new LinkedList<>();
+                        result.put(i, listColumnAux);
                     }
                     listColumnAux.add(splitSentence[i]);
-                    result.put(i, listColumnAux);
                 }
             }
             if (sc.ioException() != null) {
