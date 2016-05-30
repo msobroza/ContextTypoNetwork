@@ -189,7 +189,7 @@ public class NetworkControl implements LetterInformation {
             }
             ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
             
-            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.REGION_DELIMITATION){
+            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.USE_MSR_DATA_REGION){
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords,Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
             }else{
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);

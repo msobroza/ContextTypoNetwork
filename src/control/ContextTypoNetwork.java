@@ -53,8 +53,8 @@ public class ContextTypoNetwork {
     public static boolean USE_CONTEXT_INFORMATION = true;
     // Test only context network
     public static boolean TEST_ONLY_CONTEXT_NETWORK = true;
-    // Test with region delimitation
-    public static boolean REGION_DELIMITATION = false;
+    // Use msr data
+    public static boolean USE_MSR_DATA_REGION = false;
 
     public static Logger logger = Logger.getRootLogger();
 
@@ -233,7 +233,7 @@ public class ContextTypoNetwork {
             }
             HashMap<Integer, List<String>> testInput = new HashMap<>(FileIO.readSplittedFile(test_sentences_file));
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
-                if (ContextTypoNetwork.REGION_DELIMITATION) {
+                if (ContextTypoNetwork.USE_MSR_DATA_REGION) {
                      controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), testInput.get(ConfigFile.TestSentences.POSSIBLE_WORDS.getIndex()), null);
                 } else {
                     controlNetwork.decoderPhase(testInput.get(ConfigFile.TestSentences.ERROR_SENTENCE.getIndex()), testInput.get(ConfigFile.TestSentences.WORD.getIndex()), null, null);
