@@ -66,33 +66,43 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     }
 
     public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList) throws TException {
-        int unknownWordPos = getFirstUnknownWord(sentence);
-        List<Integer> relativePositions = new ArrayList<>();
-        if (unknownWordPos != -1) {
-            relativePositions.addAll(getRelativePositionList(sentence, unknownWordPos));
-        }
-        VirtualLevelCliques mainCliquesLevel = net.getMainLevel(1);
-        List<VirtualLevelTournamentChain> doubleLayers = net.getLayersFromMain(mainCliquesLevel);
-        List<VirtualLevelTournamentChain> activationLayers = new ArrayList<>();
-        List<Integer> orientationList = new ArrayList<>();
-        List<String> activationWords = new ArrayList<>();
-        int r;
-        for (int i = 0; i < sentence.size(); i++) {
-            r = Math.abs(relativePositions.get(i));
-            if (r != 0 && r <= mainCliquesLevel.getMaxAnticipationDistance()) {
-                for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
-                    if (sequenceLayer.anticipationDistance() == r) {
-                        activationLayers.add(sequenceLayer);
-                        if (relativePositions.get(i) > 0) {
-                            orientationList.add(PAST_WORDS);
-                        } else {
-                            orientationList.add(FUTURE_WORDS);
+        int countNet = 0;
+        int unknownWordPos;
+        VirtualLevelCliques mainCliquesLevel;
+        List<VirtualLevelTournamentChain> doubleLayers, activationLayers;
+        List<Integer> orientationList, relativePositions;
+        List<String> activationWords;
+        activationLayers = new ArrayList<>();
+        orientationList = new ArrayList<>();
+        activationWords = new ArrayList<>();
+        for (List<String> sentenceNgram : sentence) {
+            unknownWordPos = getFirstUnknownWord(sentence.get(countNet));
+            mainCliquesLevel = net.getMainLevel(listIdMainNetwork.get(countNet));
+            doubleLayers = net.getLayersFromMain(mainCliquesLevel);
+            int r;
+            relativePositions = new ArrayList<>();
+            if (unknownWordPos != -1) {
+                relativePositions.addAll(getRelativePositionList(sentenceNgram, unknownWordPos));
+            }
+            for (int i = 0; i < sentenceNgram.size(); i++) {
+                r = Math.abs(relativePositions.get(i));
+                if (r != 0 && r <= mainCliquesLevel.getMaxAnticipationDistance()) {
+                    for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
+                        if (sequenceLayer.anticipationDistance() == r) {
+                            activationLayers.add(sequenceLayer);
+                            if (relativePositions.get(i) > 0) {
+                                orientationList.add(PAST_WORDS);
+                            } else {
+                                orientationList.add(FUTURE_WORDS);
+                            }
+                            activationWords.add(sentenceNgram.get(i));
                         }
-                        activationWords.add(sentence.get(i));
                     }
                 }
             }
+            countNet++;
         }
+
         List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
         for (String regionWord : regionWordsList) {
             decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION));
@@ -100,7 +110,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
         for (int i = 0; i < activationLayers.size(); i++) {
             decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i), activationLayers.get(i).getH(), orientationList.get(i)));
         }
-        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, mainCliquesLevel.getH());
+        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, listIdMainNetwork.get(0));
     }
 
     public static List<Integer> getRelativePositionList(List<String> sentence, int position) {

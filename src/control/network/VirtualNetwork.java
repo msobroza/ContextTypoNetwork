@@ -24,14 +24,15 @@ public final class VirtualNetwork extends Network {
 
     private final CUDAContextInterface.Client virtualInterface;
     private final HashMap<Integer, VirtualLevelCliques> mapNwordsMainLevel;
+    private final HashMap<Integer, Integer> mapNwordsAnticipation;
     private final HashMap<VirtualLevelCliques, List<VirtualLevelTournamentChain>> mapMainLevelDoubleLayers;
     private final List<CONFIG_NET_FILES> configFiles;
-    private final static String CONFIG_DIR="/home/msobroza/git/CBNN_CUDA/CBNN_ContextNetworks";
-    private final static int [] N_WORDS_VECTOR ={1};
-    
+    private final static String CONFIG_DIR = "/home/msobroza/git/CBNN_CUDA/CBNN_ContextNetworks";
+
     enum CONFIG_NET_FILES {
 
-        MAIN(CONFIG_DIR+"/configMots"), R1(CONFIG_DIR+"/configSequence"), R2(CONFIG_DIR+"/configSequence"), R3(CONFIG_DIR+"/configSequence"), R4(CONFIG_DIR+"/configSequence");
+        MAIN_WORDS(CONFIG_DIR + "/configMots"), R1(CONFIG_DIR + "/configSequence"), R2(CONFIG_DIR + "/configSequence"), R3(CONFIG_DIR + "/configSequence"), R4(CONFIG_DIR + "/configSequence"),
+        MAIN_BIWORDS(CONFIG_DIR + "/configMots"), R1_BIWORDS(CONFIG_DIR + "/configSequence");
 
         private final String serverPath;
 
@@ -51,56 +52,73 @@ public final class VirtualNetwork extends Network {
         this.hCounter = -1;
         this.mapMainLevelDoubleLayers = new HashMap<>();
         this.mapNwordsMainLevel = new HashMap<>();
+        this.mapNwordsAnticipation = new HashMap<>();
         this.configFiles = new ArrayList<>();
-        this.levelsList= new LinkedList<>();
-        this.TYPE_NETWORK=TypeNetwork.VIRTUAL_NETWORK;
+        this.levelsList = new LinkedList<>();
+        this.TYPE_NETWORK = TypeNetwork.VIRTUAL_NETWORK;
         this.initConfigNetworksFiles();
-        for(int nword:N_WORDS_VECTOR){
-            createLevels(nword);
+        for (int nword : mapNwordsAnticipation.keySet()) {
+            System.out.println(nword);
+            createLevels(nword, mapNwordsAnticipation.get(nword));
         }
 
     }
 
-    public void createLevels(int nwords) throws TException {
-        createCliquesLevel(CONFIG_NET_FILES.MAIN.toString(), nwords);
-        int mainIdLevel = mapNwordsMainLevel.get(nwords).getH();
-        System.out.println("mainIdLevel: "+mainIdLevel);
-        for (int r = 1; r < configFiles.size(); r++) {
-            createSequenceLevel(this.configFiles.get(r).toString(), nwords, r, mainIdLevel);
+    public void createLevels(int nwords, int anticipation) throws TException {
+        int mainIdLevel = getIndexMainNetwork(nwords);
+        createCliquesLevel(this.configFiles.get(mainIdLevel).toString(), anticipation, nwords);
+        System.out.println("mainIdLevel: " + mainIdLevel);
+        for (int r = 1; r <= anticipation; r++) {
+            createSequenceLevel(this.configFiles.get(mainIdLevel + r).toString(), nwords, r, mainIdLevel);
         }
+    }
+
+    private int getIndexMainNetwork(int nword) {
+        int index = 0;
+        for (int n = 1; n < nword; n++) {
+            if (mapNwordsAnticipation.containsKey(n)) {
+                index += mapNwordsAnticipation.get(n) + 1;
+            }
+        }
+        return index;
     }
 
     private void initConfigNetworksFiles() {
-        this.configFiles.add(CONFIG_NET_FILES.MAIN);
+        this.mapNwordsAnticipation.put(1, 4);
+        this.mapNwordsAnticipation.put(2, 1);
+        this.configFiles.add(CONFIG_NET_FILES.MAIN_WORDS);
         this.configFiles.add(CONFIG_NET_FILES.R1);
         this.configFiles.add(CONFIG_NET_FILES.R2);
         this.configFiles.add(CONFIG_NET_FILES.R3);
         this.configFiles.add(CONFIG_NET_FILES.R4);
+        this.configFiles.add(CONFIG_NET_FILES.MAIN_BIWORDS);
+        this.configFiles.add(CONFIG_NET_FILES.R1_BIWORDS);
     }
 
     public CUDAContextInterface.Client getVirtualInterface() {
         return this.virtualInterface;
     }
 
-    public Level createCliquesLevel(String configFile, int nwords) throws TException {
+    public Level createCliquesLevel(String configFile, int anticipation, int nwords) throws TException {
         this.hCounter++;
         VirtualLevelCliques l = new VirtualLevelCliques(hCounter);
-         System.out.println("Virtual level cliques criando... "+hCounter);
-         System.out.println("l: "+l.h+" config file: "+configFile);
+        System.out.println("Virtual level cliques criando... " + hCounter);
+        System.out.println("l: " + l.h + " config file: " + configFile);
+        this.mapNwordsMainLevel.put(nwords, l);
         this.levelsList.add(l.getH(), l);
         this.virtualInterface.createContextNetwork(l.getH(), configFile);
-        this.mapNwordsMainLevel.put(nwords, l);
         return l;
     }
 
     public Level createSequenceLevel(String configFile, int nwords, int anticipationDistance, int mainIdLevel) throws TException {
         this.hCounter++;
-        System.out.println("Virtual level tournament criando... "+hCounter);
-        VirtualLevelTournamentChain l = new VirtualLevelTournamentChain(hCounter, mapNwordsMainLevel.get(nwords).getH(), anticipationDistance);
-        System.out.println("l: "+l.h+" config file: "+configFile);
+        VirtualLevelCliques mainLayer = (VirtualLevelCliques) this.mapNwordsMainLevel.get(nwords);
+        System.out.println("Virtual level tournament criando... " + hCounter);
+        System.out.println("Virtual level tournament idMainLevel: "+mapNwordsMainLevel.get(nwords).getH());
+        VirtualLevelTournamentChain l = new VirtualLevelTournamentChain(hCounter, mainLayer.getH(), anticipationDistance, nwords);
+        System.out.println("l: " + l.h + " config file: " + configFile);
         this.virtualInterface.createContextNetwork(l.h, configFile);
         this.levelsList.add(l.getH(), l);
-        VirtualLevelCliques mainLayer = (VirtualLevelCliques) this.mapNwordsMainLevel.get(nwords);
         List<VirtualLevelTournamentChain> doubleLayers;
         if (mapMainLevelDoubleLayers.containsKey(mainLayer)) {
             doubleLayers = mapMainLevelDoubleLayers.get(mainLayer);
@@ -137,17 +155,21 @@ public final class VirtualNetwork extends Network {
         return true;
     }
 
-    public boolean learnWordSequences(int nwords, List<String> sentences) throws TException {
-        VirtualLevelCliques mainLevel = mapNwordsMainLevel.get(nwords);
-        List<VirtualLevelTournamentChain> sequencesLevelsList = new ArrayList<>(mapMainLevelDoubleLayers.get(mainLevel));
+    public boolean learnWordSequences(List<String> sentences) throws TException {
+        VirtualLevelCliques mainLevel;
         List<ContextNetwork> contextList = new ArrayList<>();
-        for (VirtualLevelTournamentChain l : sequencesLevelsList) {
-            
-            contextList.add(new ContextNetwork(l.getH(), mainLevel.getH(), l.anticipationDistance()));
+        System.out.println("learnWordSequences with "+sentences.size()+ "sentences");
+        for (int nwordKey : mapNwordsMainLevel.keySet()) {
+            System.out.println("N Words: "+nwordKey);
+            mainLevel = mapNwordsMainLevel.get(nwordKey);
+            for (VirtualLevelTournamentChain l : mapMainLevelDoubleLayers.get(mainLevel)) {
+                contextList.add(new ContextNetwork(l.getH(), mainLevel.getH(), l.anticipationDistance(), nwordKey));
+            }
         }
-        for(ContextNetwork n:contextList){
-            System.out.println("idNet: "+n.idNetwork+"idMain: "+n.idMainWordNetwork+"d: "+n.distance);
+        for (ContextNetwork n : contextList) {
+            System.out.println("idNet: " + n.idNetwork + "idMain: " + n.idMainWordNetwork + "d: " + n.distance + "nWords: " + n.nwords);
         }
+
         return this.virtualInterface.learnCompleteSequences(contextList, sentences) == 0;
     }
 

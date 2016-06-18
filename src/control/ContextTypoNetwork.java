@@ -54,7 +54,7 @@ public class ContextTypoNetwork {
     // Test only context network
     public static boolean TEST_ONLY_CONTEXT_NETWORK = true;
     // Use msr data
-    public static boolean USE_MSR_DATA_REGION = false;
+    public static boolean USE_MSR_DATA_REGION = true;
 
     public static Logger logger = Logger.getRootLogger();
 
@@ -274,7 +274,6 @@ public class ContextTypoNetwork {
         if (seqSender != null) {
             seqSender.closeConnection();
         }
-
     }
 
     public static <K extends Comparable, V extends Comparable> Map<K, V> sortByValues(Map<K, V> map) {

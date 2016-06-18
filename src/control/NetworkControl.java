@@ -160,7 +160,7 @@ public class NetworkControl implements LetterInformation {
         FrenchTokenizer tokenizer = new FrenchTokenizer();
         VirtualNetwork contextNet = (VirtualNetwork) multimodalNetworks.get(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex());
         VirtualWordContextDecoder contextDecoder = new VirtualWordContextDecoder(contextNet);
-        List<String> activatedContextWords;
+        List<String> activatedContextWords = null;
 
         /* boolean exit = false;
          Scanner reader = new Scanner(System.in);
@@ -190,6 +190,8 @@ public class NetworkControl implements LetterInformation {
             ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
             
             if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.USE_MSR_DATA_REGION){
+                // I need the information of ngrams and main clique networks
+                
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords,Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
             }else{
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
@@ -197,8 +199,8 @@ public class NetworkControl implements LetterInformation {
             
             word = correctWordList.get(jSamples);
             
-            ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
-                    + "Found " + activatedContextWords.contains(word) + "; Mots contexte: " + activatedContextWords);
+            /*ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
+                    + "Found " + activatedContextWords.contains(word) + "; Mots contexte: " + activatedContextWords);*/
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
                 if (activatedContextWords.size() != 1) {
                     error++;
@@ -341,7 +343,7 @@ public class NetworkControl implements LetterInformation {
 
             storedSentences.add(sentenceToken);
         }
-        contextNetwork.learnWordSequences(1, storedSentences);
+        contextNetwork.learnWordSequences(storedSentences);
     }
 
     public void learningWordsPhase(List<String> trainingWordsList, List<String> trainingPhonsList) {
