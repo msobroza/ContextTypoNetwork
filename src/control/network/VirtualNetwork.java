@@ -95,6 +95,16 @@ public final class VirtualNetwork extends Network {
         this.configFiles.add(CONFIG_NET_FILES.R1_BIWORDS);
     }
 
+    public int getAnticipation(int nword) {
+        return this.mapNwordsAnticipation.get(nword);
+    }
+
+    public List<Integer> getListNwords() {
+        List<Integer> result = new ArrayList<>();
+        result.addAll(this.mapNwordsAnticipation.keySet());
+        return result;
+    }
+
     public CUDAContextInterface.Client getVirtualInterface() {
         return this.virtualInterface;
     }
@@ -114,7 +124,7 @@ public final class VirtualNetwork extends Network {
         this.hCounter++;
         VirtualLevelCliques mainLayer = (VirtualLevelCliques) this.mapNwordsMainLevel.get(nwords);
         System.out.println("Virtual level tournament criando... " + hCounter);
-        System.out.println("Virtual level tournament idMainLevel: "+mapNwordsMainLevel.get(nwords).getH());
+        System.out.println("Virtual level tournament idMainLevel: " + mapNwordsMainLevel.get(nwords).getH());
         VirtualLevelTournamentChain l = new VirtualLevelTournamentChain(hCounter, mainLayer.getH(), anticipationDistance, nwords);
         System.out.println("l: " + l.h + " config file: " + configFile);
         this.virtualInterface.createContextNetwork(l.h, configFile);
@@ -135,7 +145,7 @@ public final class VirtualNetwork extends Network {
         return this.mapMainLevelDoubleLayers.get(mainLevel);
     }
 
-    public List<VirtualLevelTournamentChain> getLayerFromMain(int nwords) {
+    public List<VirtualLevelTournamentChain> getLayersFromMain(int nwords) {
         return this.mapMainLevelDoubleLayers.get(this.getMainLevel(nwords));
     }
 
@@ -158,9 +168,9 @@ public final class VirtualNetwork extends Network {
     public boolean learnWordSequences(List<String> sentences) throws TException {
         VirtualLevelCliques mainLevel;
         List<ContextNetwork> contextList = new ArrayList<>();
-        System.out.println("learnWordSequences with "+sentences.size()+ "sentences");
+        System.out.println("learnWordSequences with " + sentences.size() + "sentences");
         for (int nwordKey : mapNwordsMainLevel.keySet()) {
-            System.out.println("N Words: "+nwordKey);
+            System.out.println("N Words: " + nwordKey);
             mainLevel = mapNwordsMainLevel.get(nwordKey);
             for (VirtualLevelTournamentChain l : mapMainLevelDoubleLayers.get(mainLevel)) {
                 contextList.add(new ContextNetwork(l.getH(), mainLevel.getH(), l.anticipationDistance(), nwordKey));

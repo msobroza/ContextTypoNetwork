@@ -4,15 +4,17 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/msobroza/these/git/context-typo-network/src/tools/interface_cuda/CUDAInterfaceClientFactory.java</file>
-            <file>file:/home/msobroza/these/git/context-typo-network/src/tools/interface_cuda/ContextNetwork.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/tools/interface_cuda/InterfaceSender.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/control/network/VirtualNetwork.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/tools/interface_cuda/CUDATestConnection.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/control/decoder/VirtualWordContextDecoder.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/control/NetworkControl.java</file>
+            <file>file:/home/msobroza/these/git/context-typo-network/src/control/network/VirtualLevelCliques.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/tools/interface_cuda/CUDAContextInterface.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/tools/FileIO.java</file>
             <file>file:/home/msobroza/these/git/context-typo-network/src/control/ContextTypoNetwork.java</file>
+            <file>file:/home/msobroza/these/git/context-typo-network/src/control/rules/LetterInformation.java</file>
+            <file>file:/home/msobroza/these/git/context-typo-network/src/control/network/VirtualLevelTournamentChain.java</file>
         </group>
     </open-files>
 </project-private>

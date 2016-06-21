@@ -23,6 +23,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     private final VirtualNetwork net;
     public static int FUTURE_WORDS = -1;
     public static int PAST_WORDS = 1;
+    public static int[] orientation_list = {PAST_WORDS, FUTURE_WORDS};
     public static int REGION_WORDS_ORIENTATION = 0;
     public static int REGION_WORDS_NETWORK = -1;
 
@@ -66,51 +67,59 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     }
 
     public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList) throws TException {
-        int countNet = 0;
-        int unknownWordPos;
-        VirtualLevelCliques mainCliquesLevel;
-        List<VirtualLevelTournamentChain> doubleLayers, activationLayers;
-        List<Integer> orientationList, relativePositions;
-        List<String> activationWords;
-        activationLayers = new ArrayList<>();
-        orientationList = new ArrayList<>();
-        activationWords = new ArrayList<>();
-        for (List<String> sentenceNgram : sentence) {
-            unknownWordPos = getFirstUnknownWord(sentence.get(countNet));
-            mainCliquesLevel = net.getMainLevel(listIdMainNetwork.get(countNet));
-            doubleLayers = net.getLayersFromMain(mainCliquesLevel);
-            int r;
-            relativePositions = new ArrayList<>();
-            if (unknownWordPos != -1) {
-                relativePositions.addAll(getRelativePositionList(sentenceNgram, unknownWordPos));
-            }
-            for (int i = 0; i < sentenceNgram.size(); i++) {
-                r = Math.abs(relativePositions.get(i));
-                if (r != 0 && r <= mainCliquesLevel.getMaxAnticipationDistance()) {
-                    for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
-                        if (sequenceLayer.anticipationDistance() == r) {
-                            activationLayers.add(sequenceLayer);
-                            if (relativePositions.get(i) > 0) {
-                                orientationList.add(PAST_WORDS);
-                            } else {
-                                orientationList.add(FUTURE_WORDS);
-                            }
-                            activationWords.add(sentenceNgram.get(i));
-                        }
-                    }
-                }
-            }
-            countNet++;
-        }
-
+        VirtualLevelCliques rootLayer = net.getMainLevel(1);
         List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
         for (String regionWord : regionWordsList) {
             decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION));
         }
-        for (int i = 0; i < activationLayers.size(); i++) {
-            decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i), activationLayers.get(i).getH(), orientationList.get(i)));
+        decodingInputs.addAll(generateListOfInputDecoding(sentence));
+        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, rootLayer.getH());
+    }
+
+    public List<DecodingInputWordNetwork> generateListOfInputDecoding(List<String> sentenceTokenized) {
+        List<DecodingInputWordNetwork> result = new ArrayList<>();
+        int unknownWordPos = getFirstUnknownWord(sentenceTokenized);
+        String nword;
+        for (int ngram : net.getListNwords()) {
+            for (VirtualLevelTournamentChain doubleLayer : net.getLayersFromMain(ngram)) {
+                for (int orientation : orientation_list) {
+                    nword = generateWindowNgram(sentenceTokenized, ngram, unknownWordPos, doubleLayer.anticipationDistance(), orientation);
+                    if (!nword.isEmpty() && nword != null) {
+                        result.add(new DecodingInputWordNetwork(nword, doubleLayer.getH(), orientation));
+                    }
+                }
+
+            }
         }
-        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, listIdMainNetwork.get(0));
+        return result;
+    }
+
+    public static String generateWindowNgram(List<String> sentenceTokenized, int ngram, int unknownWordPos, int r, int orientation) {
+        // Verificar
+        String result = "";
+        int posLimit;
+        if (orientation == PAST_WORDS) {
+            posLimit = unknownWordPos - ngram - (r - 1);
+            if (posLimit >= 0) {
+                for (int i = posLimit; i < unknownWordPos; i++) {
+                    result += sentenceTokenized.get(i) + CONCAT_SYMBOL;
+                }
+            } else {
+                return null;
+            }
+        } else if (orientation == FUTURE_WORDS) {
+            posLimit = unknownWordPos + ngram + (r - 1);
+            if (posLimit < sentenceTokenized.size()) {
+                for (int i = unknownWordPos + r; i <= posLimit; i++) {
+                    result += sentenceTokenized.get(i) + CONCAT_SYMBOL;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+        return result;
     }
 
     public static List<Integer> getRelativePositionList(List<String> sentence, int position) {
