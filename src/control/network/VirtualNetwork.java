@@ -5,13 +5,12 @@
  */
 package control.network;
 
-import control.NetworkControl;
 import control.NetworkControl.TypeNetwork;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import model.Clique;
+import model.Clique;    
 import org.apache.thrift.TException;
 import tools.interface_cuda.CUDAContextInterface;
 import tools.interface_cuda.ContextNetwork;
@@ -73,7 +72,7 @@ public final class VirtualNetwork extends Network {
         }
     }
 
-    private int getIndexMainNetwork(int nword) {
+    public int getIndexMainNetwork(int nword) {
         int index = 0;
         for (int n = 1; n < nword; n++) {
             if (mapNwordsAnticipation.containsKey(n)) {

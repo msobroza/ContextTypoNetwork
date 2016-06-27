@@ -123,7 +123,8 @@ public class NetworkControl implements LetterInformation {
         }
 
         if (ContextTypoNetwork.USE_CONTEXT_INFORMATION) {
-            multimodalNetworks.add(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex(), new VirtualNetwork(this.virtualInterface));
+            VirtualNetwork aux = new VirtualNetwork(this.virtualInterface);
+            multimodalNetworks.add(IndexNetwork.VIRTUAL_CLIQUES_NETWORK.getIndex(), aux);
         }
 
         if (ACTIVATE_INTERFACE_NETWORK) {
@@ -188,34 +189,34 @@ public class NetworkControl implements LetterInformation {
                 sentenceWords = new ArrayList<>(Arrays.asList(tokenizer.tokenize(incorrectSentencesList.get(jSamples))));
             }
             ContextTypoNetwork.logger.debug("Phrase: " + incorrectSentencesList.get(jSamples));
-            
-            if(ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.USE_MSR_DATA_REGION){
+
+            if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.USE_MSR_DATA_REGION) {
                 // I need the information of ngrams and main clique networks
-                
-                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords,Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
-            }else{
+
+                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords, Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
+            } else {
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
             }
-            
+
             word = correctWordList.get(jSamples);
+
+            ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
+                    + "Premier: " + activatedContextWords.get(0).equalsIgnoreCase(word) + "; Ordre: " + activatedContextWords);
             
-            /*ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
-                    + "Found " + activatedContextWords.contains(word) + "; Mots contexte: " + activatedContextWords);*/
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
                 if (activatedContextWords.size() != 1) {
                     error++;
                     if (activatedContextWords.contains(word)) {
                         matchingRate += 1.0;
                     }
+                } else if (!activatedContextWords.get(0).equals(word)) {
+                    error++;
                 } else {
-                    if (!activatedContextWords.get(0).equals(word)) {
-                        error++;
-                    } else {
-                        matchingRate += 1.0;
-                    }
+                    matchingRate += 1.0;
                 }
                 continue;
             }
+            
             modifiedWord = errorWordList.get(jSamples);
             ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
             String phonLia = errorPhonList.get(jSamples);
@@ -258,6 +259,7 @@ public class NetworkControl implements LetterInformation {
             this.errorRatePerNetwork.add(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), (double) errorR2 / samples);
         }
         matchingRate = matchingRate / samples;
+        System.out.println("Accurancy: "+matchingRate);
         errorRate = ((double) error) / samples;
     }
 
