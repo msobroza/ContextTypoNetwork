@@ -26,52 +26,18 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     public static int[] orientation_list = {PAST_WORDS, FUTURE_WORDS};
     public static int REGION_WORDS_ORIENTATION = 0;
     public static int REGION_WORDS_NETWORK = -1;
+    public static int REGION_WORDS_ANTICIPATION = 0;
+    public static int REGION_WORDS_IDSPLIT = -1;
 
     public VirtualWordContextDecoder(VirtualNetwork net) {
         this.net = net;
-    }
-
-    // Deprecated: It works only for ngram=1
-    public List<String> decodingUnknownWordSentence(List<String> sentence) throws TException {
-        int unknownWordPos = getFirstUnknownWord(sentence);
-        List<Integer> relativePositions = new ArrayList<>();
-        if (unknownWordPos != -1) {
-            relativePositions.addAll(getRelativePositionList(sentence, unknownWordPos));
-        }
-        VirtualLevelCliques mainCliquesLevel = net.getMainLevel(1);
-        List<VirtualLevelTournamentChain> doubleLayers = net.getLayersFromMain(mainCliquesLevel);
-        List<VirtualLevelTournamentChain> activationLayers = new ArrayList<>();
-        List<Integer> orientationList = new ArrayList<>();
-        List<String> activationWords = new ArrayList<>();
-        int r;
-        for (int i = 0; i < sentence.size(); i++) {
-            r = Math.abs(relativePositions.get(i));
-            if (r != 0 && r <= mainCliquesLevel.getMaxAnticipationDistance()) {
-                for (VirtualLevelTournamentChain sequenceLayer : doubleLayers) {
-                    if (sequenceLayer.anticipationDistance() == r) {
-                        activationLayers.add(sequenceLayer);
-                        if (relativePositions.get(i) > 0) {
-                            orientationList.add(PAST_WORDS);
-                        } else {
-                            orientationList.add(FUTURE_WORDS);
-                        }
-                        activationWords.add(sentence.get(i));
-                    }
-                }
-            }
-        }
-        List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
-        for (int i = 0; i < activationLayers.size(); i++) {
-            decodingInputs.add(new DecodingInputWordNetwork(activationWords.get(i), activationLayers.get(i).getH(), orientationList.get(i), mainCliquesLevel.getH()));
-        }
-        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, mainCliquesLevel.getH());
     }
 
     public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList) throws TException {
         VirtualLevelCliques rootLayer = net.getMainLevel(1);
         List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
         for (String regionWord : regionWordsList) {
-            decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION, rootLayer.getH()));
+            decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION, rootLayer.getH(), REGION_WORDS_ANTICIPATION, REGION_WORDS_IDSPLIT));
         }
         decodingInputs.addAll(generateListOfInputDecoding(sentence));
         return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, rootLayer.getH());
@@ -85,11 +51,21 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
             for (VirtualLevelTournamentChain doubleLayer : net.getLayersFromMain(ngram)) {
                 for (int orientation : orientation_list) {
                     nword = null;
-                    //System.out.println("ngram: " + ngram + " unkPos: " + unknownWordPos + " R: " + doubleLayer.anticipationDistance() + " orientation: " + orientation);
-                    nword = generateWindowNgram(sentenceTokenized, ngram, unknownWordPos, doubleLayer.anticipationDistance(), orientation);
-                    if (nword != null && !nword.isEmpty()) {
-                        //System.out.println("Clique net: " + ((VirtualNetwork) net).getIndexMainNetwork(ngram) + " Activating word: " + nword + " in " + doubleLayer.getH() + " with orientation: " + orientation);
-                        result.add(new DecodingInputWordNetwork(nword, doubleLayer.getH(), ((VirtualNetwork) net).getIndexMainNetwork(ngram), orientation));
+                    for (int offset = 0; offset < ngram; offset++) {
+                        nword = generateWindowNgram(sentenceTokenized, ngram, unknownWordPos, offset, doubleLayer.anticipationDistance(), orientation);
+                        if (nword != null && !nword.isEmpty()) {
+                            if (ngram > 0) {
+                                System.out.println(" DoubleLayer R: " + doubleLayer.anticipationDistance() + " offset: " + offset + " anticipationDistance: " + doubleLayer.anticipationDistance());
+                            }
+                            int idSplit;
+                            if (orientation == PAST_WORDS) {
+                                idSplit = offset;
+                            } else {
+                                idSplit = ngram - offset - 1;
+                            }
+                            System.out.println("nword: " + nword + " ngram: " + ngram + " unkPos: " + unknownWordPos + " R: " + doubleLayer.anticipationDistance() + " orientation: " + orientation + " idSplit: " + idSplit);
+                            result.add(new DecodingInputWordNetwork(nword, doubleLayer.getH(), ((VirtualNetwork) net).getIndexMainNetwork(ngram), orientation, doubleLayer.anticipationDistance(), idSplit));
+                        }
                     }
                 }
 
@@ -98,11 +74,12 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
         return result;
     }
 
-    public static String generateWindowNgram(List<String> sentenceTokenized, int ngram, int unknownWordPos, int r, int orientation) {
+    public static String generateWindowNgram(List<String> sentenceTokenized, int ngram, int unknownWordPos, int offset, int r, int orientation) {
         // Verificar
         String result = "";
         int posLimit;
         if (orientation == PAST_WORDS) {
+            unknownWordPos -= offset;
             posLimit = unknownWordPos - ngram - (r - 1);
             if (posLimit >= 0) {
                 for (int i = 0; i < ngram; i++) {
@@ -112,6 +89,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
                 return null;
             }
         } else if (orientation == FUTURE_WORDS) {
+            unknownWordPos += offset;
             posLimit = unknownWordPos + ngram + (r - 1);
             if (posLimit < sentenceTokenized.size()) {
                 for (int i = unknownWordPos + r; i <= posLimit; i++) {

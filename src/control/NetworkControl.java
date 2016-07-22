@@ -181,6 +181,7 @@ public class NetworkControl implements LetterInformation {
          + "Mots contexte: " + activatedContextWords);
          }
          } */
+        matchingRate = 0.0;
         for (int jSamples = 0; jSamples < samples; jSamples++) {
             // Decoding in context words network
             if (TEST_SENTENCES_TOKENISED) {
@@ -195,16 +196,22 @@ public class NetworkControl implements LetterInformation {
 
                 activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords, Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
             } else {
-                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
+                //activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
             }
 
             word = correctWordList.get(jSamples);
 
             ContextTypoNetwork.logger.debug("Mot cherchée: " + word + "; "
                     + "Premier: " + activatedContextWords.get(0).equalsIgnoreCase(word) + "; Ordre: " + activatedContextWords);
-            
+
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK) {
-                if (activatedContextWords.size() != 1) {
+                if (ContextTypoNetwork.USE_CONTEXT_INFORMATION) {
+                    if(activatedContextWords.get(0).equalsIgnoreCase(word)){
+                        matchingRate += 1.0;
+                    }else{
+                        error++;
+                    }
+                } else if (activatedContextWords.size() != 1) {
                     error++;
                     if (activatedContextWords.contains(word)) {
                         matchingRate += 1.0;
@@ -216,7 +223,7 @@ public class NetworkControl implements LetterInformation {
                 }
                 continue;
             }
-            
+
             modifiedWord = errorWordList.get(jSamples);
             ContextTypoNetwork.logger.debug("Mot entree: " + modifiedWord);
             String phonLia = errorPhonList.get(jSamples);
@@ -259,7 +266,6 @@ public class NetworkControl implements LetterInformation {
             this.errorRatePerNetwork.add(IndexNetwork.LOCAL_FUZZY_NETWORK_INDEX.getIndex(), (double) errorR2 / samples);
         }
         matchingRate = matchingRate / samples;
-        System.out.println("Accurancy: "+matchingRate);
         errorRate = ((double) error) / samples;
     }
 

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import model.Clique;    
+import model.Clique;
 import org.apache.thrift.TException;
 import tools.interface_cuda.CUDAContextInterface;
 import tools.interface_cuda.ContextNetwork;
@@ -31,7 +31,7 @@ public final class VirtualNetwork extends Network {
     enum CONFIG_NET_FILES {
 
         MAIN_WORDS(CONFIG_DIR + "/configMots"), R1(CONFIG_DIR + "/configSequence"), R2(CONFIG_DIR + "/configSequence"), R3(CONFIG_DIR + "/configSequence"), R4(CONFIG_DIR + "/configSequence"),
-        MAIN_BIWORDS(CONFIG_DIR + "/configMots"), R1_BIWORDS(CONFIG_DIR + "/configSequence");
+        R5(CONFIG_DIR + "/configSequence"), R6(CONFIG_DIR + "/configSequence"), R7(CONFIG_DIR + "/configSequence"), R8(CONFIG_DIR + "/configSequence"), MAIN_BIWORDS(CONFIG_DIR + "/configMots"), R1_BIWORDS(CONFIG_DIR + "/configSequence");
 
         private final String serverPath;
 
@@ -92,6 +92,18 @@ public final class VirtualNetwork extends Network {
         this.configFiles.add(CONFIG_NET_FILES.R4);
         this.configFiles.add(CONFIG_NET_FILES.MAIN_BIWORDS);
         this.configFiles.add(CONFIG_NET_FILES.R1_BIWORDS);
+        printFileConfig();
+    }
+
+    private void printFileConfig() {
+        for (Integer ngram : mapNwordsAnticipation.keySet()) {
+            System.out.println("NGRAM: " + ngram);
+            System.out.println("NUMBER OF SEQUENCES NETWORK: " + this.mapNwordsAnticipation.get(ngram));
+        }
+        for (CONFIG_NET_FILES config : configFiles) {
+            System.out.println("-- " + config.toString());
+        }
+
     }
 
     public int getAnticipation(int nword) {
