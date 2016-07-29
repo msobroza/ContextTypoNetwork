@@ -193,8 +193,11 @@ public class NetworkControl implements LetterInformation {
 
             if (ContextTypoNetwork.TEST_ONLY_CONTEXT_NETWORK && ContextTypoNetwork.USE_MSR_DATA_REGION) {
                 // I need the information of ngrams and main clique networks
-
-                activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords, Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)));
+                if(ContextTypoNetwork.DECODE_SENTENCE){
+                     activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords, Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)),incorrectSentencesList.get(jSamples));
+                }else{
+                    activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords, Arrays.asList(tokenizer.tokenizeSimpleSplit(errorWordList.get(jSamples), REGEX_CONCAT_SYMBOL)),""); 
+                }
             } else {
                 //activatedContextWords = contextDecoder.decodingUnknownWordSentence(sentenceWords);
             }

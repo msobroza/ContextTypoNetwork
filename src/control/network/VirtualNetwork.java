@@ -84,14 +84,14 @@ public final class VirtualNetwork extends Network {
 
     private void initConfigNetworksFiles() {
         this.mapNwordsAnticipation.put(1, 4);
-        this.mapNwordsAnticipation.put(2, 1);
+        //this.mapNwordsAnticipation.put(2, 1);
         this.configFiles.add(CONFIG_NET_FILES.MAIN_WORDS);
         this.configFiles.add(CONFIG_NET_FILES.R1);
         this.configFiles.add(CONFIG_NET_FILES.R2);
         this.configFiles.add(CONFIG_NET_FILES.R3);
         this.configFiles.add(CONFIG_NET_FILES.R4);
-        this.configFiles.add(CONFIG_NET_FILES.MAIN_BIWORDS);
-        this.configFiles.add(CONFIG_NET_FILES.R1_BIWORDS);
+       // this.configFiles.add(CONFIG_NET_FILES.MAIN_BIWORDS);
+        //this.configFiles.add(CONFIG_NET_FILES.R1_BIWORDS);
         printFileConfig();
     }
 

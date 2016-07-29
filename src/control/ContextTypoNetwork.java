@@ -55,6 +55,8 @@ public class ContextTypoNetwork {
     public static boolean TEST_ONLY_CONTEXT_NETWORK = true;
     // Use msr data
     public static boolean USE_MSR_DATA_REGION = true;
+    
+    public static boolean DECODE_SENTENCE = true;
 
     public static Logger logger = Logger.getRootLogger();
 

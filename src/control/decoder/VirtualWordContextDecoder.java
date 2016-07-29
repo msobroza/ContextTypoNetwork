@@ -33,14 +33,14 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
         this.net = net;
     }
 
-    public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList) throws TException {
+    public List<String> decodingUnknownWordSentence(List<String> sentence, List<String> regionWordsList, String entireSentence) throws TException {
         VirtualLevelCliques rootLayer = net.getMainLevel(1);
         List<DecodingInputWordNetwork> decodingInputs = new ArrayList<>();
         for (String regionWord : regionWordsList) {
             decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION, rootLayer.getH(), REGION_WORDS_ANTICIPATION, REGION_WORDS_IDSPLIT));
         }
         decodingInputs.addAll(generateListOfInputDecoding(sentence));
-        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, rootLayer.getH());
+        return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, rootLayer.getH(), entireSentence);
     }
 
     public List<DecodingInputWordNetwork> generateListOfInputDecoding(List<String> sentenceTokenized) {
