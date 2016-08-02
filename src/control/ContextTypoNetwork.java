@@ -248,7 +248,7 @@ public class ContextTypoNetwork {
             }
 
         } else {
-            // It verifies the test file exists
+            // It verifies if the test file exists
             if (!FileIO.fileExists(test_file)) {
                 throw new FileNotExists(test_file);
             }

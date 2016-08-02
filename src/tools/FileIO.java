@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,8 +40,9 @@ public class FileIO {
             sc = new Scanner(inputStream, "UTF-8");
             while (sc.hasNextLine()) {
                 count += 1;
-                if(count % 100000 == 0)
+                if (count % 100000 == 0) {
                     ContextTypoNetwork.logger.debug("100000 more where read");
+                }
                 sentence = sc.nextLine();
                 splitSentence = sentence.split(DELIMITER);
                 for (int i = 0; i < splitSentence.length; i++) {
@@ -91,8 +93,23 @@ public class FileIO {
         }
         return false;
     }
-    
-     public static void bufferedWrite(List<String> content, String filePath) {
+
+    public static void bufferedWrite(HashMap<Integer, List<String>> content, String filePath) {
+        List<String> resultContent = new ArrayList<>();
+        List<Integer> contentIds = (List<Integer>) content.keySet();
+        Collections.sort(contentIds);
+        for (int i = 0; i < content.get(0).size(); i++) {
+            String line = "";
+            for (Integer id : contentIds) {
+                line=line+content.get(id).get(i)+DELIMITER;
+            }
+            resultContent.add(i, line);
+        }
+        bufferedWrite(resultContent, filePath);
+
+    }
+
+    public static void bufferedWrite(List<String> content, String filePath) {
 
         Path fileP = Paths.get(filePath);
         Charset charset = Charset.forName("utf-8");
@@ -107,7 +124,5 @@ public class FileIO {
         } catch (IOException e) {
         }
     }
-    
-    
-    
+
 }
