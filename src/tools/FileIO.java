@@ -96,7 +96,8 @@ public class FileIO {
 
     public static void bufferedWrite(HashMap<Integer, List<String>> content, String filePath) {
         List<String> resultContent = new ArrayList<>();
-        List<Integer> contentIds = (List<Integer>) content.keySet();
+        List<Integer> contentIds = new ArrayList<>();
+        contentIds.addAll(content.keySet());
         Collections.sort(contentIds);
         for (int i = 0; i < content.get(0).size(); i++) {
             String line = "";

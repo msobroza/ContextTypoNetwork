@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.log4j.BasicConfigurator;
@@ -78,24 +79,35 @@ public class GenerateCorpus implements LetterInformation {
 
             if (GENERATE_TRAIN) {
 
-                List<String> generatedSentences = new ArrayList<>();
-                List<String> originalSentences = new ArrayList<>();
                 int i = 0;
+                long startTime = System.currentTimeMillis();
+                String generatedLine, originalLine;
+                long endTime, totalTime;
+                boolean existsWord;
+                ArrayList<String> trainOriginalSentence = new ArrayList<>(trainSentencesInput.get(TrainSentences.ORIGINAL_SENTENCE.getIndex()));
+                List<String> generatedSentences = new ArrayList<>(linesTrainSentences.size());
+                List<String> originalSentences = new ArrayList<>(linesTrainSentences.size());
+                StringBuilder newLine = new StringBuilder(20000);
                 for (String lineTokens : linesTrainSentences) {
-                    String generatedLine = "";
-                    String originalLine = trainSentencesInput.get(TrainSentences.ORIGINAL_SENTENCE.getIndex()).get(i);
-                    boolean existsWord = false;
-                    for (String word : tokenizer.tokenizeSimpleSplit(lineTokens, REGEX_CONCAT_SYMBOL)) {
+                    existsWord = false;
+                    String[] splittedLine = tokenizer.tokenizeSimpleSplit(lineTokens, REGEX_CONCAT_SYMBOL);
+                    newLine.setLength(0);
+                    for (String word : splittedLine) {
                         if (!mostFrequentWords.contains(word)) {
-                            generatedLine = generatedLine + word + CONCAT_SYMBOL;
+                            newLine.append(word);
+                            newLine.append(CONCAT_SYMBOL);
                             existsWord = true;
                         }
                     }
                     if (existsWord) {
-                        originalSentences.add(originalLine);
-                        generatedSentences.add(generatedLine);
+                        originalSentences.add(trainOriginalSentence.get(i));
+                        generatedSentences.add(newLine.toString());
                     }
-                    if (i % 100000 == 0) {
+                    if (i % 100000 == 0) { 
+                        endTime = System.currentTimeMillis();
+                        totalTime = endTime - startTime;
+                        System.out.println("Step: "+totalTime);
+                        startTime = System.currentTimeMillis();
                         System.out.println("100000 more where write in train");
                     }
                     i++;
@@ -103,11 +115,12 @@ public class GenerateCorpus implements LetterInformation {
                 HashMap<Integer, List<String>> trainSentencesOutput = new HashMap<>();
                 trainSentencesOutput.put(TrainSentences.ORIGINAL_SENTENCE.getIndex(), originalSentences);
                 trainSentencesOutput.put(TrainSentences.NORMALIZED_SENTENCE.getIndex(), generatedSentences);
+                System.out.println("Writing...");
                 bufferedWrite(trainSentencesOutput, OUTPUT_TRAIN_FILE);
 
             }
             if (GENERATE_TEST) {
-                HashMap<Integer, List<String>> testSentences = new HashMap<>(FileIO.readSplittedFile(INPUT_TRAIN_FILE));
+                HashMap<Integer, List<String>> testSentences = new HashMap<>(FileIO.readSplittedFile(INPUT_TEST_FILE));
                 List<String> linesTestSentences = new ArrayList<>(testSentences.get(TestSentences.ERROR_SENTENCE.getIndex()));
                 List<String> generatedSentences = new ArrayList<>();
                 int i = 0;
@@ -126,7 +139,7 @@ public class GenerateCorpus implements LetterInformation {
 
                 }
                 testSentences.put(TestSentences.ERROR_SENTENCE.getIndex(), generatedSentences);
-
+                System.out.println("Writing...");
                 bufferedWrite(testSentences, OUTPUT_TEST_FILE);
             }
         }
