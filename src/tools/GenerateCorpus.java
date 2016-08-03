@@ -7,6 +7,7 @@ package tools;
 
 import config.ConfigFile.TestSentences;
 import config.ConfigFile.TrainSentences;
+import control.ContextTypoNetwork;
 import static control.ContextTypoNetwork.logger;
 import static control.ContextTypoNetwork.test_sentences_file;
 import static control.ContextTypoNetwork.train_sentences_file;
@@ -33,12 +34,12 @@ import tools.tokenizer.FrenchTokenizer;
  */
 public class GenerateCorpus implements LetterInformation {
 
-    public static int NUMBER_WORDS = 200;
+    public static int NUMBER_WORDS = 50;
     public static boolean REMOVE_MOST_FREQUENT_WORDS = true;
     public static String INPUT_TRAIN_FILE = train_sentences_file;
     public static String INPUT_TEST_FILE = test_sentences_file;
-    public static String OUTPUT_TRAIN_FILE = "./corpus/training/sequences/train_msr200.pickle";
-    public static String OUTPUT_TEST_FILE = "./corpus/test/sequences/test_msr200.pickle";
+    public static String OUTPUT_TRAIN_FILE = "./corpus/training/sequences/train_msr50.pickle";
+    public static String OUTPUT_TEST_FILE = "./corpus/test/sequences/test_msr50.pickle";
     public static boolean GENERATE_TRAIN = true;
     public static boolean GENERATE_TEST = true;
     public static Logger logger = Logger.getRootLogger();
@@ -70,9 +71,12 @@ public class GenerateCorpus implements LetterInformation {
         for (int k = 0; k < NUMBER_WORDS; k++) {
             mostFrequentValues.add(countSorted.get(k));
         }
+        int countW=1;
         for (String word : countWordsMap.keySet()) {
             if (mostFrequentValues.contains(countWordsMap.get(word))) {
                 mostFrequentWords.add(word);
+                ContextTypoNetwork.logger.debug("n: "+countW+" - most frequent word: "+word);
+                countW++;
             }
         }
         if (REMOVE_MOST_FREQUENT_WORDS) {
@@ -80,9 +84,6 @@ public class GenerateCorpus implements LetterInformation {
             if (GENERATE_TRAIN) {
 
                 int i = 0;
-                long startTime = System.currentTimeMillis();
-                String generatedLine, originalLine;
-                long endTime, totalTime;
                 boolean existsWord;
                 ArrayList<String> trainOriginalSentence = new ArrayList<>(trainSentencesInput.get(TrainSentences.ORIGINAL_SENTENCE.getIndex()));
                 List<String> generatedSentences = new ArrayList<>(linesTrainSentences.size());
@@ -104,18 +105,14 @@ public class GenerateCorpus implements LetterInformation {
                         generatedSentences.add(newLine.toString());
                     }
                     if (i % 100000 == 0) { 
-                        endTime = System.currentTimeMillis();
-                        totalTime = endTime - startTime;
-                        System.out.println("Step: "+totalTime);
-                        startTime = System.currentTimeMillis();
-                        System.out.println("100000 more where write in train");
+                        ContextTypoNetwork.logger.debug("100000 more where write in train");
                     }
                     i++;
                 }
                 HashMap<Integer, List<String>> trainSentencesOutput = new HashMap<>();
                 trainSentencesOutput.put(TrainSentences.ORIGINAL_SENTENCE.getIndex(), originalSentences);
                 trainSentencesOutput.put(TrainSentences.NORMALIZED_SENTENCE.getIndex(), generatedSentences);
-                System.out.println("Writing...");
+                ContextTypoNetwork.logger.debug("Writing train in file...");
                 bufferedWrite(trainSentencesOutput, OUTPUT_TRAIN_FILE);
 
             }
@@ -133,13 +130,13 @@ public class GenerateCorpus implements LetterInformation {
                     }
                     generatedSentences.add(generatedLine);
                     if (i % 100000 == 0) {
-                        System.out.println("100000 more where write in test");
+                        ContextTypoNetwork.logger.debug("100000 more where write in test");
                     }
                     i++;
 
                 }
                 testSentences.put(TestSentences.ERROR_SENTENCE.getIndex(), generatedSentences);
-                System.out.println("Writing...");
+                ContextTypoNetwork.logger.debug("Writing test in file...");
                 bufferedWrite(testSentences, OUTPUT_TEST_FILE);
             }
         }

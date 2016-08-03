@@ -10,9 +10,11 @@ import control.network.VirtualLevelTournamentChain;
 import control.network.VirtualNetwork;
 import control.rules.LetterInformation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.thrift.TException;
 import tools.interface_cuda.DecodingInputWordNetwork;
+import tools.tokenizer.FrenchTokenizer;
 
 /**
  *
@@ -28,6 +30,7 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
     public static int REGION_WORDS_NETWORK = -1;
     public static int REGION_WORDS_ANTICIPATION = 0;
     public static int REGION_WORDS_IDSPLIT = -1;
+    public static boolean INVERSE_DECODING_ONLY_PAST_WORDS = false;
 
     public VirtualWordContextDecoder(VirtualNetwork net) {
         this.net = net;
@@ -40,6 +43,13 @@ public class VirtualWordContextDecoder extends Decoder implements LetterInformat
             decodingInputs.add(new DecodingInputWordNetwork(regionWord, REGION_WORDS_NETWORK, REGION_WORDS_ORIENTATION, rootLayer.getH(), REGION_WORDS_ANTICIPATION, REGION_WORDS_IDSPLIT));
         }
         decodingInputs.addAll(generateListOfInputDecoding(sentence));
+        if (INVERSE_DECODING_ONLY_PAST_WORDS) {
+            FrenchTokenizer t = new FrenchTokenizer();
+            List<String> tokensSentence = Arrays.asList(t.tokenizeSimpleSplit(entireSentence, REGEX_CONCAT_SYMBOL));
+            int posUnk = getFirstUnknownWord(tokensSentence);
+            tokensSentence = tokensSentence.subList(0, posUnk);
+            entireSentence = FrenchTokenizer.reverseToken((String[]) tokensSentence.toArray(), CONCAT_SYMBOL);
+        }
         return net.getVirtualInterface().getActivatedWordsNetwork(decodingInputs, rootLayer.getH(), entireSentence);
     }
 
